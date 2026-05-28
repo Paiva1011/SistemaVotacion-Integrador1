@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Registro</title>
+
+    <style>
+        body{
+            font-family: Arial;
+            background:#f4f4f4;
+            padding:40px;
+        }
+
+        .container{
+            width:400px;
+            margin:auto;
+            background:white;
+            padding:30px;
+            border-radius:10px;
+        }
+
+        input{
+            width:100%;
+            padding:10px;
+            margin-top:10px;
+        }
+
+        button{
+            width:100%;
+            padding:10px;
+            margin-top:20px;
+        }
+    </style>
+
+</head>
+<body>
+
+<div class="container">
+
+    <h2>Registro de Votante</h2>
+
+    <form th:action="@{/votantes/registro}" th:object="${votante}" method="post">
+
+        <input type="text" th:field="*{dni}" placeholder="DNI">
+
+        <input type="text" th:field="*{nombre}" placeholder="Nombre">
+
+        <input type="text" th:field="*{apellido}" placeholder="Apellido">
+
+        <input type="email" th:field="*{email}" placeholder="Email">
+
+        <input type="password" th:field="*{password}" placeholder="Password">
+
+        <button type="submit">
+            Registrar
+        </button>
+
+    </form>
+
+    <p th:text="${mensaje}"></p>
+
+</div>
+
+</body>
+</html>
