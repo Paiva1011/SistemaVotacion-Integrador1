@@ -32,6 +32,11 @@
                 <td><p class="propuesta-text" th:text="${c.propuesta}">Propuesta...</p></td>
                 <td class="votos" th:text="${c.totalVotos}">0</td>
             </tr>
+
+            <!-- En caso que la lista este vacia -->
+            <tr th:if="${#lists.isEmpty(candidatos)}">
+                <td colspan="5" class="empty-msg">Aun no hay candidatos registrados.</td>
+            </tr>
         </tbody>
     </table>
 </main>
