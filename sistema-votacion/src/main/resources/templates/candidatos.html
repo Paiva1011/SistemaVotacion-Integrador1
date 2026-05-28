@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="es">
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
 <head>
     <meta charset="UTF-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
@@ -25,12 +25,12 @@
         </thead>
         <tbody>
             <!-- Muestra los candidatos -->
-            <tr>
-                <td >1</td>
-                <td >Juan Pérez</td>
-                <td><span class="partido-badge">Partido</span></td>
-                <td><p class="propuesta-text">Propuesta...</p></td>
-                <td class="votos">0</td>
+            <tr th:each="c, stat : ${candidatos}">
+                <td th:text="${stat.count}">1</td>
+                <td th:text="${c.nombre + ' ' + c.apellido}">Juan Pérez</td>
+                <td><span class="partido-badge" th:text="${c.partido}">Partido</span></td>
+                <td><p class="propuesta-text" th:text="${c.propuesta}">Propuesta...</p></td>
+                <td class="votos" th:text="${c.totalVotos}">0</td>
             </tr>
         </tbody>
     </table>
