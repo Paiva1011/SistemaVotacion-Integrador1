@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Emitir Voto</title>
+</head>
+<body>
+    <h2>Emitir Voto</h2>
+    <p th:if="${mensaje}" th:text="${mensaje}" style="color:green"></p>
+    
+    <form th:action="@{/votar}" method="post">
+        <label>ID Votante: <input type="number" name="votanteId" required/></label><br/><br/>
+        
+        <label>Selecciona un candidato:</label><br/>
+        <div th:each="c : ${candidatos}">
+            <input type="radio" name="candidatoId" th:value="${c.id}" required/>
+            <span th:text="${c.nombre + ' ' + c.apellido + ' - ' + c.partido}"></span><br/>
+        </div>
+        <br/>
+        <button type="submit">Votar</button>
+    </form>
+    
+    <br/>
+    <a href="/">Volver al inicio</a>
+</body>
+</html>
