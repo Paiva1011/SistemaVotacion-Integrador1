@@ -3,75 +3,90 @@ package com.votacion.sistema_votacion.model;
 import jakarta.persistence.*;
 
 @Entity
-@Table(name = "candidatos")
-
+@Table(name = "candidato")
 public class Candidato {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @Column(name = "id_candidato")
+    private Long idCandidato;
 
     @Column(nullable = false)
-    private String nombre;
+    private String nombres;
 
     @Column(nullable = false)
-    private String apellido;
+    private String apellidos;
 
-    @Column(nullable = false)
-    private String partido;
+    @Column(name = "propuestas_pdf")
+    private String propuestasPdf;
 
-    @Column(columnDefinition = "TEXT")
-    private String propuesta;
+    @ManyToOne
+    @JoinColumn(name = "id_partido", nullable = false)
+    private PartidoPolitico partido;
 
-    @Column(nullable = false)
-    private int totalVotos = 0;
+    @ManyToOne
+    @JoinColumn(name = "id_eleccion", nullable = false)
+    private Eleccion eleccion;
 
-    //Constructores
-    public Candidato(){}
+    // Constructores
+    public Candidato() {
+    }
 
-    public Candidato(String nombre, String apellido, String partido, String propuesta){
-        this.nombre = nombre;
-        this.apellido = apellido;
+    public Candidato(String nombres, String apellidos, String propuestasPdf,
+            PartidoPolitico partido, Eleccion eleccion) {
+        this.nombres = nombres;
+        this.apellidos = apellidos;
+        this.propuestasPdf = propuestasPdf;
         this.partido = partido;
-        this.propuesta = propuesta;
-        this.totalVotos = 0;
+        this.eleccion = eleccion;
     }
 
-    //Getters & Setters
-    public Long getId(){
-        return id;
+    // Getters y Setters
+    public Long getIdCandidato() {
+        return idCandidato;
     }
-    public void setId(Long id){
-        this.id = id;
+
+    public void setIdCandidato(Long idCandidato) {
+        this.idCandidato = idCandidato;
     }
-    public String getNombre(){
-        return nombre;
+
+    public String getNombres() {
+        return nombres;
     }
-    public void setNombre(String nombre){
-        this.nombre = nombre;
+
+    public void setNombres(String nombres) {
+        this.nombres = nombres;
     }
-    public String getApellido(){
-        return apellido;
+
+    public String getApellidos() {
+        return apellidos;
     }
-    public void setApellido(String apellido){
-        this.apellido = apellido;
+
+    public void setApellidos(String apellidos) {
+        this.apellidos = apellidos;
     }
-    public String getPartido(){
+
+    public String getPropuestasPdf() {
+        return propuestasPdf;
+    }
+
+    public void setPropuestasPdf(String propuestasPdf) {
+        this.propuestasPdf = propuestasPdf;
+    }
+
+    public PartidoPolitico getPartido() {
         return partido;
     }
-    public void setPartido(String partido){
+
+    public void setPartido(PartidoPolitico partido) {
         this.partido = partido;
     }
-    public String getPropuesta(){
-        return propuesta;
+
+    public Eleccion getEleccion() {
+        return eleccion;
     }
-    public void setPropuesta(String propuesta){
-        this.propuesta = propuesta;
-    }
-    public int getTotalVotos(){
-        return totalVotos;
-    }
-    public void setTotalVotos(int totalVotos){
-        this.totalVotos = totalVotos;
+
+    public void setEleccion(Eleccion eleccion) {
+        this.eleccion = eleccion;
     }
 }

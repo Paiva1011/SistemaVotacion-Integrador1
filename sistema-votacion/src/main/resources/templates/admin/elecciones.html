@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+
+<head>
+    <meta charset="UTF-8" />
+    <title>Gestionar Elecciones</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: #f0f4f8;
+        }
+
+        header {
+            background: #1a3c6e;
+            color: white;
+            padding: 1.2rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        header h1 {
+            font-size: 1.2rem;
+        }
+
+        .nav a {
+            color: white;
+            text-decoration: none;
+            margin-left: 1rem;
+            font-size: 0.88rem;
+            background: rgba(255, 255, 255, 0.2);
+            padding: 5px 12px;
+            border-radius: 20px;
+        }
+
+        main {
+            max-width: 1000px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+        }
+
+        .seccion {
+            background: white;
+            border-radius: 12px;
+            padding: 1.8rem;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.07);
+            margin-bottom: 2rem;
+        }
+
+        h2 {
+            font-size: 1.1rem;
+            color: #1a3c6e;
+            margin-bottom: 1.2rem;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+
+        label {
+            display: block;
+            font-size: 0.82rem;
+            font-weight: 600;
+            color: #555;
+            margin-bottom: 4px;
+        }
+
+        input,
+        select,
+        textarea {
+            width: 100%;
+            padding: 0.65rem 0.9rem;
+            border: 1.5px solid #ddd;
+            border-radius: 8px;
+            font-size: 0.9rem;
+        }
+
+        input:focus,
+        select:focus {
+            outline: none;
+            border-color: #1a3c6e;
+        }
+
+        .full {
+            grid-column: 1 / -1;
+        }
+
+        .btn-guardar {
+            margin-top: 1rem;
+            padding: 0.75rem 2rem;
+            background: #1a3c6e;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th {
+            background: #1a3c6e;
+            color: white;
+            padding: 0.8rem 1rem;
+            text-align: left;
+            font-size: 0.85rem;
+        }
+
+        td {
+            padding: 0.8rem 1rem;
+            border-bottom: 1px solid #eee;
+            font-size: 0.88rem;
+        }
+
+        tr:hover td {
+            background: #f8f9fa;
+        }
+
+        .badge {
+            padding: 3px 10px;
+            border-radius: 20px;
+            font-size: 0.78rem;
+            font-weight: 600;
+        }
+
+        .ACTIVA {
+            background: #e8f5e9;
+            color: #2e7d32;
+        }
+
+        .CERRADA {
+            background: #fde8e8;
+            color: #c0392b;
+        }
+
+        .PENDIENTE {
+            background: #fff3e0;
+            color: #e65100;
+        }
+
+        .btn-accion {
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            text-decoration: none;
+            font-weight: 600;
+            margin-right: 4px;
+        }
+
+        .btn-activar {
+            background: #e8f5e9;
+            color: #2e7d32;
+        }
+
+        .btn-cerrar {
+            background: #fde8e8;
+            color: #c0392b;
+        }
+
+        .btn-eliminar {
+            background: #f5f5f5;
+            color: #666;
+        }
+    </style>
+</head>
+
+<body>
+    <header>
+        <h1>⚙️ Gestionar Elecciones</h1>
+        <div class="nav">
+            <a th:href="@{/admin/dashboard}">Dashboard</a>
+            <a th:href="@{/admin/logout}">Cerrar sesión</a>
+        </div>
+    </header>
+    <main>
+        <!-- Formulario nueva elección -->
+        <div class="seccion">
+            <h2>➕ Nueva Elección</h2>
+            <form method="post" th:action="@{/elecciones/guardar}">
+                <div class="form-grid">
+                    <div>
+                        <label>Nombre</label>
+                        <input type="text" name="nombre" required placeholder="Ej: Elecciones Municipales 2026" />
+                    </div>
+                    <div>
+                        <label>Estado</label>
+                        <select name="estado">
+                            <option value="PENDIENTE">Pendiente</option>
+                            <option value="ACTIVA">Activa</option>
+                            <option value="CERRADA">Cerrada</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label>Fecha inicio</label>
+                        <input type="datetime-local" name="fechaInicio" required />
+                    </div>
+                    <div>
+                        <label>Fecha fin</label>
+                        <input type="datetime-local" name="fechaFin" required />
+                    </div>
+                    <div class="full">
+                        <label>Descripción</label>
+                        <input type="text" name="descripcion" placeholder="Descripción breve" />
+                    </div>
+                </div>
+                <button type="submit" class="btn-guardar">Guardar Elección</button>
+            </form>
+        </div>
+
+        <!-- Lista de elecciones -->
+        <div class="seccion">
+            <h2>📋 Elecciones Registradas</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Nombre</th>
+                        <th>Fecha inicio</th>
+                        <th>Fecha fin</th>
+                        <th>Estado</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="e : ${elecciones}">
+                        <td th:text="${e.nombre}">Nombre</td>
+                        <td th:text="${#temporals.format(e.fechaInicio, 'dd/MM/yyyy HH:mm')}">Fecha</td>
+                        <td th:text="${#temporals.format(e.fechaFin,    'dd/MM/yyyy HH:mm')}">Fecha</td>
+                        <td><span class="badge" th:classappend="${e.estado}" th:text="${e.estado}"></span></td>
+                        <td>
+                            <a class="btn-accion btn-activar"
+                                th:href="@{/elecciones/estado/{id}/ACTIVA(id=${e.idEleccion})}">Activar</a>
+                            <a class="btn-accion btn-cerrar"
+                                th:href="@{/elecciones/estado/{id}/CERRADA(id=${e.idEleccion})}">Cerrar</a>
+                            <a class="btn-accion btn-eliminar"
+                                th:href="@{/elecciones/eliminar/{id}(id=${e.idEleccion})}">Eliminar</a>
+                        </td>
+                    </tr>
+                    <tr th:if="${#lists.isEmpty(elecciones)}">
+                        <td colspan="5" style="text-align:center; color:#aaa; padding:2rem">
+                            No hay elecciones registradas
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </main>
+</body>
+
+</html>

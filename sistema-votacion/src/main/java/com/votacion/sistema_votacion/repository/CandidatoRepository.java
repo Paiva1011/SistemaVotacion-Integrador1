@@ -9,5 +9,5 @@ import java.util.List;
 public interface CandidatoRepository extends JpaRepository<Candidato, Long>{
     
     //Listar todos los candidatos por apellido
-    List<Candidato> findAllByOrderByApellidoAsc();
+    List<Candidato> findAllByOrderByApellidosAsc();
 }
