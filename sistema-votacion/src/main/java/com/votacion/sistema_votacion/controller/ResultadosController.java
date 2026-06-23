@@ -35,7 +35,7 @@ public class ResultadosController {
 
     // Resultados por elección
     @GetMapping("/{idEleccion}")
-    public String resultadosPorEleccion(@PathVariable Long idEleccion, Model model) {
+    public String resultadosPorEleccion(@PathVariable long idEleccion, Model model) {
         Eleccion eleccion = eleccionRepository.findById(idEleccion).orElse(null);
         List<Candidato> candidatos = candidatoRepository.findAll();
 

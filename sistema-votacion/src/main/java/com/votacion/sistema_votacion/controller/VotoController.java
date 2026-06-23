@@ -37,12 +37,21 @@ public class VotoController {
 
     // ── Candidatos por elección ────────────────────────────────
     @GetMapping("/candidatos/{idEleccion}")
-    public String mostrarCandidatos(@PathVariable Long idEleccion,
+    public String mostrarCandidatos(@PathVariable long idEleccion,
             HttpSession session, Model model) {
         if (session.getAttribute("votanteLogueado") == null)
             return "redirect:/votante/login";
 
+        Votante votante = (Votante) session.getAttribute("votanteLogueado");
         Eleccion eleccion = eleccionRepository.findById(idEleccion).orElse(null);
+
+        // Verifica si ya votó en esta elección
+    if (votoRepository.findByVotanteAndEleccion(votante, eleccion).isPresent()) {
+        model.addAttribute("elecciones", eleccionRepository.findByEstado("ACTIVA"));
+        model.addAttribute("votanteLogueado", votante);
+        model.addAttribute("errorVoto", "Ya emitiste tu voto en el proceso: " + eleccion.getNombre() + ". No puedes votar dos veces.");
+        return "votante/elecciones";
+    }
         List<Candidato> candidatos = candidatoRepository.findAll()
                 .stream()
                 .filter(c -> c.getEleccion().getIdEleccion().equals(idEleccion))
@@ -55,8 +64,8 @@ public class VotoController {
 
     // ── Procesar voto ──────────────────────────────────────────
     @PostMapping("/emitir")
-public String emitirVoto(@RequestParam Long idCandidato,
-        @RequestParam Long idEleccion,
+public String emitirVoto(@RequestParam long idCandidato,
+        @RequestParam long idEleccion,
         HttpSession session, Model model) {
 
     Votante votante = (Votante) session.getAttribute("votanteLogueado");
@@ -66,7 +75,13 @@ public String emitirVoto(@RequestParam Long idCandidato,
     Eleccion eleccion = eleccionRepository.findById(idEleccion).orElse(null);
 
     if (votoRepository.findByVotanteAndEleccion(votante, eleccion).isPresent()) {
+        List<Candidato> candidatos = candidatoRepository.findAll()
+        .stream()
+        .filter(c -> c.getEleccion().getIdEleccion().equals(idEleccion))
+        .collect(java.util.stream.Collectors.toList());
         model.addAttribute("error", "Ya emitiste tu voto en esta elección");
+        model.addAttribute("eleccion", eleccion);
+        model.addAttribute("candidatos", candidatos);
         return "votante/candidatos";
     }
 

@@ -59,6 +59,18 @@
         .empty { text-align: center; color: #888; padding: 3rem; }
     </style>
 </head>
+<script>
+    // oculta el error despues de 4 segundos
+    const msgError = document.querySelector('[th\\:if]');
+    const alerta = document.getElementById('alertaVoto');
+    if (alerta) {
+        setTimeout(() => {
+            alerta.style.transition = 'opacity 0.5s';
+            alerta.style.opacity = '0';
+            setTimeout(() => alerta.remove(), 500);
+        }, 4000);
+    }
+</script>
 <body>
 <header>
     <h1>SVÉS</h1>
@@ -71,6 +83,21 @@
 
 <main>
     <h2>Procesos Electorales Disponibles</h2>
+
+    <!-- Mensaje de ya votó -->
+    <div id="alertaVoto" th:if="${errorVoto}" style="
+    background: #fde8e8;
+    color: #c0392b;
+    padding: 1rem 1.2rem;
+    border-radius: 10px;
+    margin-bottom: 1.5rem;
+    font-size: 0.95rem;
+    border-left: 4px solid #c0392b;
+    display: flex;
+    align-items: center;
+    gap: 10px;">
+    ⚠️ <span th:text="${errorVoto}"></span>
+    </div>
 
     <div class="grid">
         <div th:each="eleccion : ${elecciones}" class="card">
