@@ -8,4 +8,5 @@ import java.util.List;
 @Repository
 public interface EleccionRepository extends JpaRepository<Eleccion, Long> {
     List<Eleccion> findByEstado(String estado);
+    List<Eleccion> findByPublicadaTrue();
 }

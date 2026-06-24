@@ -243,8 +243,14 @@
                                 th:href="@{/elecciones/estado/{id}/ACTIVA(id=${e.idEleccion})}">Activar</a>
                             <a class="btn-accion btn-cerrar"
                                 th:href="@{/elecciones/estado/{id}/CERRADA(id=${e.idEleccion})}">Cerrar</a>
+                            <a class="btn-accion" th:if="${e.estado == 'CERRADA' and !e.publicada}"
+                                th:href="@{/elecciones/publicar/{id}(id=${e.idEleccion})}"
+                                style="background:#fff3e0; color:#e65100;">Publicar</a>
+                            <a class="btn-accion"
+                                th:href="@{'/resultados/admin/' + ${e.idEleccion}}"
+                                style="background:#e8f5e9; color:#2e7d32;">Resultados</a>
                             <a class="btn-accion btn-eliminar"
-                                th:href="@{/elecciones/eliminar/{id}(id=${e.idEleccion})}">Eliminar</a>
+                                th:href="@{'/elecciones/eliminar/' + ${e.idEleccion}}">Eliminar</a>
                         </td>
                     </tr>
                     <tr th:if="${#lists.isEmpty(elecciones)}">

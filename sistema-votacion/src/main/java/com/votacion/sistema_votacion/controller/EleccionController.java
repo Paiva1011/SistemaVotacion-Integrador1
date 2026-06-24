@@ -71,4 +71,17 @@ public class EleccionController {
         eleccionRepository.deleteById(id);
         return "redirect:/elecciones";
     }
+
+    // Publicar resultados de una elección
+    @GetMapping("/publicar/{id}")
+    public String publicar(@PathVariable Long id, HttpSession session) {
+        if (session.getAttribute("adminLogueado") == null)
+            return "redirect:/admin/login";
+
+        eleccionRepository.findById(id).ifPresent(e -> {
+            e.setPublicada(true);
+            eleccionRepository.save(e);
+        });
+        return "redirect:/elecciones";
+    }
 }
