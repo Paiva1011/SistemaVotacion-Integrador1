@@ -49,7 +49,7 @@ public class EleccionController {
 
     // Cambiar estado de elección
     @GetMapping("/estado/{id}/{estado}")
-    public String cambiarEstado(@PathVariable Long id,
+    public String cambiarEstado(@PathVariable long id,
             @PathVariable String estado,
             HttpSession session) {
         if (session.getAttribute("adminLogueado") == null)
@@ -64,11 +64,24 @@ public class EleccionController {
 
     // Eliminar elección
     @GetMapping("/eliminar/{id}")
-    public String eliminar(@PathVariable Long id, HttpSession session) {
+    public String eliminar(@PathVariable long id, HttpSession session) {
         if (session.getAttribute("adminLogueado") == null)
             return "redirect:/admin/login";
 
         eleccionRepository.deleteById(id);
+        return "redirect:/elecciones";
+    }
+
+    // Publicar resultados de una elección
+    @GetMapping("/publicar/{id}")
+    public String publicar(@PathVariable Long id, HttpSession session) {
+        if (session.getAttribute("adminLogueado") == null)
+            return "redirect:/admin/login";
+
+        eleccionRepository.findById(id).ifPresent(e -> {
+            e.setPublicada(true);
+            eleccionRepository.save(e);
+        });
         return "redirect:/elecciones";
     }
 }

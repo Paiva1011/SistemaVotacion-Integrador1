@@ -27,6 +27,9 @@ public class Eleccion {
     @Column(nullable = false)
     private String estado;
 
+    @Column(nullable = false)
+    private boolean publicada = false;
+
     // Constructores
     public Eleccion() {
     }
@@ -87,5 +90,13 @@ public class Eleccion {
 
     public void setEstado(String estado) {
         this.estado = estado;
+    }
+
+    public boolean isPublicada() {
+        return publicada;
+    }
+
+    public void setPublicada(boolean publicada) {
+        this.publicada = publicada;
     }
 }

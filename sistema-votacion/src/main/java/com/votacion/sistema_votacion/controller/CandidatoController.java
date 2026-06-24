@@ -57,8 +57,8 @@ public class CandidatoController {
     @PostMapping("/guardar")
     public String guardar(@RequestParam String nombres,
             @RequestParam String apellidos,
-            @RequestParam Long idPartido,
-            @RequestParam Long idEleccion,
+            @RequestParam long idPartido,
+            @RequestParam long idEleccion,
             @RequestParam(required = false) MultipartFile propuestasPdf,
             HttpSession session) throws IOException {
 
@@ -100,7 +100,7 @@ public class CandidatoController {
 
     // Eliminar candidato
     @GetMapping("/eliminar/{id}")
-    public String eliminar(@PathVariable Long id, HttpSession session) {
+    public String eliminar(@PathVariable long id, HttpSession session) {
         if (session.getAttribute("adminLogueado") == null)
             return "redirect:/admin/login";
 
