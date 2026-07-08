@@ -38,6 +38,8 @@ public class SistemaVotacionTests {
     private VotoRepository votoRepository;
     @Autowired
     private ComprobanteRepository comprobanteRepository;
+    @Autowired
+    private ParticipacionRepository participacionRepository;
 
     // ── Prueba 1 ───────────────────────────────────────────────
     @Test
@@ -197,18 +199,18 @@ public class SistemaVotacionTests {
         Candidato candidato = new Candidato("Pedro", "Ramos", null, partido, eleccion);
         candidatoRepository.save(candidato);
 
-        Voto voto = new Voto(votante, candidato, eleccion, LocalDateTime.now());
-        Voto guardado = votoRepository.save(voto);
+        Voto primerVoto = new Voto(candidato, eleccion, LocalDateTime.now());
+        votoRepository.save(primerVoto);
 
-        assertNotNull(guardado.getIdVoto(),
+        assertNotNull(primerVoto.getIdVoto(),
                 "El ID del voto no debe ser nulo");
-        assertEquals(votante.getDni(), guardado.getVotante().getDni(),
-                "El votante del voto debe coincidir");
+
+                Participacion participacion = new Participacion(votante, eleccion, LocalDateTime.now());
+                participacionRepository.save(participacion); 
 
         // Verifica que no puede votar dos veces
-        Optional<Voto> duplicado = votoRepository.findByVotanteAndEleccion(votante, eleccion);
-        assertTrue(duplicado.isPresent(),
-                "Debe detectar que el votante ya votó en esta elección");
+        Optional<Participacion> yaVoto = participacionRepository.findByVotanteAndEleccion(votante, eleccion);
+        assertTrue(yaVoto.isPresent(), "Debe detectar que el votante ya participó");
 
         System.out.println("Prueba 7 pasada: Voto emitido y doble voto prevenido");
     }
@@ -231,7 +233,7 @@ public class SistemaVotacionTests {
         Candidato candidato = new Candidato("Sofía", "Luna", null, partido, eleccion);
         candidatoRepository.save(candidato);
 
-        Voto voto = new Voto(votante, candidato, eleccion, LocalDateTime.now());
+        Voto voto = new Voto(candidato, eleccion, LocalDateTime.now());
         votoRepository.save(voto);
 
         // Genera el código igual que en VotoController

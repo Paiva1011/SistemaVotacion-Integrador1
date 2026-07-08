@@ -20,6 +20,7 @@ public class VotoController {
     @Autowired private CandidatoRepository candidatoRepository;
     @Autowired private EleccionRepository eleccionRepository;
     @Autowired private ComprobanteRepository comprobanteRepository;
+    @Autowired private ParticipacionRepository participacionRepository;
 
     // ── Lista de elecciones activas ────────────────────────────
     @GetMapping("/elecciones")
@@ -46,7 +47,7 @@ public class VotoController {
         Eleccion eleccion = eleccionRepository.findById(idEleccion).orElse(null);
 
         // Verifica si ya votó en esta elección
-    if (votoRepository.findByVotanteAndEleccion(votante, eleccion).isPresent()) {
+    if (participacionRepository.findByVotanteAndEleccion(votante, eleccion).isPresent()) {
         model.addAttribute("elecciones", eleccionRepository.findByEstado("ACTIVA"));
         model.addAttribute("votanteLogueado", votante);
         model.addAttribute("errorVoto", "Ya emitiste tu voto en el proceso: " + eleccion.getNombre() + ". No puedes votar dos veces.");
@@ -74,7 +75,7 @@ public String emitirVoto(@RequestParam long idCandidato,
 
     Eleccion eleccion = eleccionRepository.findById(idEleccion).orElse(null);
 
-    if (votoRepository.findByVotanteAndEleccion(votante, eleccion).isPresent()) {
+    if (participacionRepository.findByVotanteAndEleccion(votante, eleccion).isPresent()) {
         List<Candidato> candidatos = candidatoRepository.findAll()
         .stream()
         .filter(c -> c.getEleccion().getIdEleccion().equals(idEleccion))
@@ -91,26 +92,33 @@ public String emitirVoto(@RequestParam long idCandidato,
         candidato = candidatoRepository.findById(idCandidato).orElse(null);
     }
 
-    Voto voto = new Voto(votante, candidato, eleccion, LocalDateTime.now());
+    Voto voto = new Voto(candidato, eleccion, LocalDateTime.now());
     votoRepository.save(voto);
+
+    Participacion participacion = new Participacion(votante, eleccion, LocalDateTime.now());
+    participacionRepository.save(participacion);
 
     String codigoVerificacion = UUID.randomUUID().toString().substring(0, 8).toUpperCase();
     Comprobante comprobante = new Comprobante(voto, codigoVerificacion,
             LocalDateTime.now(), "EMITIDO");
     comprobanteRepository.save(comprobante);
 
-    session.setAttribute("ultimoComprobante", comprobante);
+    session.setAttribute("ultimoComprobanteId", comprobante.getIdComprobante());
+    session.setAttribute("participacionVotante", votante);
     return "redirect:/voto/comprobante";
 }
 
     // ── Ver comprobante ────────────────────────────────────────
     @GetMapping("/comprobante")
     public String verComprobante(HttpSession session, Model model) {
-        Comprobante comprobante = (Comprobante) session.getAttribute("ultimoComprobante");
-        if (comprobante == null)
-            return "redirect:/votante/login";
+        Long id = (Long) session.getAttribute("ultimoComprobanteId");
+        if (id == null) return "redirect:/votante/login";
+
+        Comprobante comprobante = comprobanteRepository.findById(id).orElse(null);
+        Votante votante = (Votante) session.getAttribute("participacionVotante");
 
         model.addAttribute("comprobante", comprobante);
+        model.addAttribute("votante", votante);
         return "votante/comprobante";
     }
 }

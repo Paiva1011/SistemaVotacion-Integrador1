@@ -213,8 +213,8 @@
                         <td th:text="${c.eleccion.nombre}">Elección</td>
                         <td>
                             <a class="btn-pdf" th:if="${c.propuestasPdf != null}"
-                                th:href="@{'/archivos/' + ${c.propuestasPdf}}" target="_blank">📄 Ver PDF</a>
-                            <span th:unless="${c.propuestasPdf != null}" style="color:#aaa">Sin PDF</span>
+                                th:href="@{'/candidatos/archivos/' + ${c.propuestasPdf}}" target="_blank">📄 Ver Propuesta</a>
+                            <span th:unless="${c.propuestasPdf != null}" style="color:#aaa">Sin Propuesta</span>
                         </td>
                         <td>
                             <a class="btn-eliminar"

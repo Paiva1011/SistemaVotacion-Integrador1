@@ -23,6 +23,8 @@ public class EleccionController {
     private VotoRepository votoRepository;
     @Autowired 
     private ComprobanteRepository comprobanteRepository;
+    @Autowired 
+    private ParticipacionRepository participacionRepository;
 
     // Listar elecciones (admin)
     @GetMapping
@@ -75,6 +77,9 @@ public class EleccionController {
         if (session.getAttribute("adminLogueado") == null)
             return "redirect:/admin/login";
 
+        Eleccion eleccion = eleccionRepository.findById(id).orElse(null);
+        if (eleccion == null) return "redirect:/elecciones";
+
     // 1. Eliminar comprobantes de los votos(de la eleccion)
     List<Voto> votos = votoRepository.findAll().stream()
         .filter(v -> v.getEleccion().getIdEleccion().equals(id))
@@ -83,18 +88,24 @@ public class EleccionController {
     for (Voto voto : votos) {
         comprobanteRepository.findAll().stream()
             .filter(c -> c.getVoto().getIdVoto().equals(voto.getIdVoto()))
-            .forEach(c -> comprobanteRepository.delete(c));
+            .forEach(comprobanteRepository::delete);
     }
 
     // 2. Eliminar votos(de la eleccion)
     votoRepository.deleteAll(votos);
 
-    // 3. Eliminar candidatos(dela eleccion)
+    // 3. Eliminar participaciones
+    List<Participacion> participaciones = participacionRepository.findAll().stream()
+        .filter(p -> p.getEleccion().getIdEleccion().equals(id))
+        .collect(java.util.stream.Collectors.toList());
+    participacionRepository.deleteAll(participaciones);
+
+    // 4. Eliminar candidatos(dela eleccion)
     List<Candidato> candidatos = candidatoRepository.findAll().stream()
         .filter(c -> c.getEleccion().getIdEleccion().equals(id))
         .collect(java.util.stream.Collectors.toList());
     candidatoRepository.deleteAll(candidatos);
-    //4. Eliminar la eleccion
+    //5. Eliminar la eleccion
         eleccionRepository.deleteById(id);
         return "redirect:/elecciones";
     }

@@ -69,13 +69,13 @@
         </div>
         <div class="fila">
             <span class="etiqueta">DNI</span>
-            <span class="valor" th:text="${comprobante.voto.votante.dni.substring(0,2) + '****' + comprobante.voto.votante.dni.substring(6)}">
+            <span class="valor" th:text="${votante.dni.substring(0,2) + '****' + votante.dni.substring(6)}">
                 12****78
             </span>
         </div>
         <div class="fila">
             <span class="etiqueta">Nombres</span>
-            <span class="valor" th:text="${comprobante.voto.votante.nombres + ' ' + comprobante.voto.votante.apellidos}">
+            <span class="valor" th:text="${votante.nombres + ' ' + votante.apellidos}">
                 Juan Pérez
             </span>
         </div>
