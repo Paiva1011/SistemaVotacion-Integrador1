@@ -4,145 +4,124 @@ import jakarta.persistence.*;
 
 /**
  * Entidad que representa a un votante dentro del sistema.
- * Contiene la información personal y el estado de participación
- * en el proceso de votación.
  */
 @Entity
 @Table(name = "votantes")
 public class Votante {
 
-    // Identificador único del votante
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @Column(name = "id_votante")
+    private Long idVotante;
 
-    // DNI del votante (único y obligatorio)
-    @Column(unique = true, nullable = false)
+    // DNI único del votante
+    @Column(nullable = false, unique = true)
     private String dni;
 
-    // Nombre del votante
-    private String nombre;
+    // Datos personales
+    @Column(nullable = false)
+    private String nombres;
 
-    // Apellido del votante
-    private String apellido;
+    @Column(nullable = false)
+    private String apellidos;
 
-    // Correo electrónico del votante (único y obligatorio)
-    @Column(unique = true, nullable = false)
+    private String celular;
+
+    // Correo del votante
+    @Column(unique = true)
     private String email;
 
-    // Contraseña de acceso al sistema
+    // Contraseña de acceso
     private String password;
 
-    // Indica si el votante ya emitió su voto
+    // Estado del voto
     private boolean yaVoto = false;
 
-    /**
-     * Constructor vacío requerido por JPA.
-     */
+
+    // Constructor vacío requerido por JPA
     public Votante() {
     }
 
-    /**
-     * Obtiene el identificador del votante.
-     * @return id del votante.
-     */
-    public Long getId() {
-        return id;
+
+    // Constructor con datos principales
+    public Votante(String dni, String nombres, String apellidos, String celular) {
+        this.dni = dni;
+        this.nombres = nombres;
+        this.apellidos = apellidos;
+        this.celular = celular;
     }
 
-    /**
-     * Obtiene el DNI del votante.
-     * @return DNI registrado.
-     */
+
+    // Getters y Setters
+
+    public Long getIdVotante() {
+        return idVotante;
+    }
+
+    public void setIdVotante(Long idVotante) {
+        this.idVotante = idVotante;
+    }
+
+
     public String getDni() {
         return dni;
     }
 
-    /**
-     * Establece el DNI del votante.
-     * @param dni DNI a registrar.
-     */
     public void setDni(String dni) {
         this.dni = dni;
     }
 
-    /**
-     * Obtiene el nombre del votante.
-     * @return nombre del votante.
-     */
-    public String getNombre() {
-        return nombre;
+
+    public String getNombres() {
+        return nombres;
     }
 
-    /**
-     * Establece el nombre del votante.
-     * @param nombre nombre a registrar.
-     */
-    public void setNombre(String nombre) {
-        this.nombre = nombre;
+    public void setNombres(String nombres) {
+        this.nombres = nombres;
     }
 
-    /**
-     * Obtiene el apellido del votante.
-     * @return apellido del votante.
-     */
-    public String getApellido() {
-        return apellido;
+
+    public String getApellidos() {
+        return apellidos;
     }
 
-    /**
-     * Establece el apellido del votante.
-     * @param apellido apellido a registrar.
-     */
-    public void setApellido(String apellido) {
-        this.apellido = apellido;
+    public void setApellidos(String apellidos) {
+        this.apellidos = apellidos;
     }
 
-    /**
-     * Obtiene el correo electrónico del votante.
-     * @return correo electrónico.
-     */
+
+    public String getCelular() {
+        return celular;
+    }
+
+    public void setCelular(String celular) {
+        this.celular = celular;
+    }
+
+
     public String getEmail() {
         return email;
     }
 
-    /**
-     * Establece el correo electrónico del votante.
-     * @param email correo electrónico a registrar.
-     */
     public void setEmail(String email) {
         this.email = email;
     }
 
-    /**
-     * Indica si el votante ya emitió su voto.
-     * @return true si ya votó, false en caso contrario.
-     */
-    public boolean isYaVoto() {
-        return yaVoto;
-    }
 
-    /**
-     * Actualiza el estado de votación del votante.
-     * @param yaVoto nuevo estado de votación.
-     */
-    public void setYaVoto(boolean yaVoto) {
-        this.yaVoto = yaVoto;
-    }
-
-    /**
-     * Obtiene la contraseña del votante.
-     * @return contraseña registrada.
-     */
     public String getPassword() {
         return password;
     }
 
-    /**
-     * Establece la contraseña del votante.
-     * @param password contraseña a registrar.
-     */
     public void setPassword(String password) {
         this.password = password;
+    }
+
+
+    public boolean isYaVoto() {
+        return yaVoto;
+    }
+
+    public void setYaVoto(boolean yaVoto) {
+        this.yaVoto = yaVoto;
     }
 }

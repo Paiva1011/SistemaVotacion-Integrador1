@@ -40,19 +40,27 @@ public class VotoController {
     @GetMapping("/candidatos/{idEleccion}")
     public String mostrarCandidatos(@PathVariable long idEleccion,
             HttpSession session, Model model) {
+
         if (session.getAttribute("votanteLogueado") == null)
             return "redirect:/votante/login";
 
         Votante votante = (Votante) session.getAttribute("votanteLogueado");
         Eleccion eleccion = eleccionRepository.findById(idEleccion).orElse(null);
 
+        if (eleccion == null) {
+            model.addAttribute("error", "La elección no existe.");
+            return "redirect:/voto/elecciones";
+        }
+
         // Verifica si ya votó en esta elección
-    if (votoService.yaVoto(votante, eleccion)) {
-        model.addAttribute("elecciones", eleccionRepository.findByEstado("ACTIVA"));
-        model.addAttribute("votanteLogueado", votante);
-        model.addAttribute("errorVoto", "Ya emitiste tu voto en el proceso: " + eleccion.getNombre() + ". No puedes votar dos veces.");
-        return "votante/elecciones";
-    }
+        if (votoService.yaVoto(votante, eleccion)) {
+            model.addAttribute("elecciones", eleccionRepository.findByEstado("ACTIVA"));
+            model.addAttribute("votanteLogueado", votante);
+            model.addAttribute("errorVoto", "Ya emitiste tu voto en el proceso: "
+                    + eleccion.getNombre() + ". No puedes votar dos veces.");
+            return "votante/elecciones";
+        }
+
         List<Candidato> candidatos = candidatoRepository.findAll()
                 .stream()
                 .filter(c -> c.getEleccion().getIdEleccion().equals(idEleccion))
@@ -65,43 +73,49 @@ public class VotoController {
 
     // ── Procesar voto ──────────────────────────────────────────
     @PostMapping("/emitir")
-public String emitirVoto(@RequestParam long idCandidato,
-        @RequestParam long idEleccion,
-        HttpSession session, Model model) {
+    public String emitirVoto(@RequestParam long idCandidato,
+            @RequestParam long idEleccion,
+            HttpSession session, Model model) {
 
-    Votante votante = (Votante) session.getAttribute("votanteLogueado");
-    if (votante == null)
-        return "redirect:/votante/login";
+        Votante votante = (Votante) session.getAttribute("votanteLogueado");
+        if (votante == null)
+            return "redirect:/votante/login";
 
-    Eleccion eleccion = eleccionRepository.findById(idEleccion).orElse(null);
+        Eleccion eleccion = eleccionRepository.findById(idEleccion).orElse(null);
 
-    if (votoService.yaVoto(votante, eleccion)) {
-        List<Candidato> candidatos = candidatoRepository.findAll()
-        .stream()
-        .filter(c -> c.getEleccion().getIdEleccion().equals(idEleccion))
-        .collect(java.util.stream.Collectors.toList());
-        model.addAttribute("error", "Ya emitiste tu voto en esta elección");
-        model.addAttribute("eleccion", eleccion);
-        model.addAttribute("candidatos", candidatos);
-        return "votante/candidatos";
+        if (eleccion == null) {
+            model.addAttribute("error", "La elección no existe.");
+            return "redirect:/voto/elecciones";
+        }
+
+        if (votoService.yaVoto(votante, eleccion)) {
+            List<Candidato> candidatos = candidatoRepository.findAll()
+                    .stream()
+                    .filter(c -> c.getEleccion().getIdEleccion().equals(idEleccion))
+                    .collect(java.util.stream.Collectors.toList());
+
+            model.addAttribute("error", "Ya emitiste tu voto en esta elección");
+            model.addAttribute("eleccion", eleccion);
+            model.addAttribute("candidatos", candidatos);
+            return "votante/candidatos";
+        }
+
+        // Si es voto en blanco (id = 0), candidato queda null
+        Candidato candidato = null;
+        if (idCandidato != 0) {
+            candidato = candidatoRepository.findById(idCandidato).orElse(null);
+        }
+
+        Voto voto = votoService.guardarVoto(votante, candidato, eleccion);
+
+        String codigoVerificacion = UUID.randomUUID().toString().substring(0, 8).toUpperCase();
+        Comprobante comprobante = new Comprobante(voto, codigoVerificacion,
+                LocalDateTime.now(), "EMITIDO");
+        comprobanteRepository.save(comprobante);
+
+        session.setAttribute("ultimoComprobante", comprobante);
+        return "redirect:/voto/comprobante";
     }
-
-    // Si es voto en blanco (id = 0), candidato queda null
-    Candidato candidato = null;
-    if (idCandidato != 0) {
-        candidato = candidatoRepository.findById(idCandidato).orElse(null);
-    }
-
-    Voto voto = votoService.guardarVoto(votante, candidato, eleccion);
-
-    String codigoVerificacion = UUID.randomUUID().toString().substring(0, 8).toUpperCase();
-    Comprobante comprobante = new Comprobante(voto, codigoVerificacion,
-            LocalDateTime.now(), "EMITIDO");
-    comprobanteRepository.save(comprobante);
-
-    session.setAttribute("ultimoComprobante", comprobante);
-    return "redirect:/voto/comprobante";
-}
 
     // ── Ver comprobante ────────────────────────────────────────
     @GetMapping("/comprobante")

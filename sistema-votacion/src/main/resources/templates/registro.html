@@ -1,62 +1,270 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
 <head>
-    <title>Registro</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <style>
-        body{
-            font-family: Arial;
-            background:#f4f4f4;
-            padding:40px;
-        }
+<title>Registro de Votante</title>
 
-        .container{
-            width:400px;
-            margin:auto;
-            background:white;
-            padding:30px;
-            border-radius:10px;
-        }
+<style>
 
-        input{
-            width:100%;
-            padding:10px;
-            margin-top:10px;
-        }
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    font-family:'Segoe UI',sans-serif;
+}
 
-        button{
-            width:100%;
-            padding:10px;
-            margin-top:20px;
-        }
-    </style>
+body{
+    background:linear-gradient(135deg,#0f4c81,#1f6fb2,#4ea8de);
+    min-height:100vh;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+}
+
+.container{
+
+    width:900px;
+    background:white;
+    border-radius:18px;
+    overflow:hidden;
+    display:flex;
+    box-shadow:0px 20px 45px rgba(0,0,0,.25);
+
+}
+
+.left{
+
+    width:40%;
+    background:linear-gradient(180deg,#0b3d91,#1565c0);
+    color:white;
+    padding:50px 35px;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+
+}
+
+.left h1{
+
+    font-size:38px;
+    margin-bottom:20px;
+
+}
+
+.left p{
+
+    font-size:18px;
+    line-height:30px;
+    opacity:.9;
+
+}
+
+.left .icon{
+
+    font-size:90px;
+    margin-bottom:30px;
+
+}
+
+.right{
+
+    width:60%;
+    padding:45px;
+
+}
+
+.right h2{
+
+    color:#0b3d91;
+    margin-bottom:10px;
+    font-size:32px;
+
+}
+
+.right p{
+
+    color:#666;
+    margin-bottom:30px;
+
+}
+
+.input-group{
+
+    margin-bottom:18px;
+
+}
+
+input{
+
+    width:100%;
+    padding:14px;
+    border-radius:10px;
+    border:1px solid #dcdcdc;
+    font-size:15px;
+    transition:.3s;
+
+}
+
+input:focus{
+
+    border-color:#1565c0;
+    outline:none;
+    box-shadow:0 0 8px rgba(21,101,192,.3);
+
+}
+
+button{
+
+    width:100%;
+    padding:15px;
+    border:none;
+    border-radius:10px;
+    background:#1565c0;
+    color:white;
+    font-size:17px;
+    cursor:pointer;
+    transition:.3s;
+
+}
+
+button:hover{
+
+    background:#0d47a1;
+
+}
+
+.mensaje{
+
+    margin-top:20px;
+    text-align:center;
+    color:green;
+    font-weight:bold;
+
+}
+
+.login{
+
+    margin-top:20px;
+    text-align:center;
+
+}
+
+.login a{
+
+    color:#1565c0;
+    text-decoration:none;
+    font-weight:bold;
+
+}
+
+.login a:hover{
+
+    text-decoration:underline;
+
+}
+
+@media(max-width:850px){
+
+.container{
+
+    flex-direction:column;
+    width:95%;
+
+}
+
+.left,
+.right{
+
+    width:100%;
+
+}
+
+}
+
+</style>
 
 </head>
+
 <body>
 
 <div class="container">
 
-    <h2>Registro de Votante</h2>
+    <div class="left">
 
-    <form th:action="@{/votantes/registro}" th:object="${votante}" method="post">
+        <div class="icon">
+            
+        </div>
 
-        <input type="text" th:field="*{dni}" placeholder="DNI">
+        <h1>Sistema de Votación</h1>
 
-        <input type="text" th:field="*{nombre}" placeholder="Nombre">
+        <p>
 
-        <input type="text" th:field="*{apellido}" placeholder="Apellido">
+            Registra tus datos para participar en el proceso electoral de manera segura, rápida y transparente.
 
-        <input type="email" th:field="*{email}" placeholder="Email">
+        </p>
 
-        <input type="password" th:field="*{password}" placeholder="Password">
+    </div>
 
-        <button type="submit">
-            Registrar
-        </button>
+    <div class="right">
 
-    </form>
+        <h2>Registro de Votante</h2>
 
-    <p th:text="${mensaje}"></p>
+        <p>Completa todos los campos para crear tu cuenta.</p>
+
+        <form th:action="@{/votantes/registro}"
+              th:object="${votante}"
+              method="post">
+
+            <div class="input-group">
+                <input type="text"
+                       th:field="*{dni}"
+                       placeholder="DNI">
+            </div>
+
+            <div class="input-group">
+                <input type="text"
+                       th:field="*{nombre}"
+                       placeholder="Nombre">
+            </div>
+
+            <div class="input-group">
+                <input type="text"
+                       th:field="*{apellido}"
+                       placeholder="Apellido">
+            </div>
+
+            <div class="input-group">
+                <input type="email"
+                       th:field="*{email}"
+                       placeholder="Correo electrónico">
+            </div>
+
+            <div class="input-group">
+                <input type="password"
+                       th:field="*{password}"
+                       placeholder="Contraseña">
+            </div>
+
+            <button type="submit">
+                Registrarme
+            </button>
+
+        </form>
+
+        <div class="mensaje">
+            <p th:text="${mensaje}"></p>
+        </div>
+
+        <div class="login">
+            ¿Ya tienes cuenta?
+            <a th:href="@{/votantes/login}">
+                Inicia sesión
+            </a>
+        </div>
+
+    </div>
 
 </div>
 

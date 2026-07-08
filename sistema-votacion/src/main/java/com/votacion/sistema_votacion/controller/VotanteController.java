@@ -1,22 +1,116 @@
 package com.votacion.sistema_votacion.controller;
 
+import com.votacion.sistema_votacion.model.Votante;
+import com.votacion.sistema_votacion.model.Otp;
+import com.votacion.sistema_votacion.repository.VotanteRepository;
+import com.votacion.sistema_votacion.repository.OtpRepository;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.*;
+import jakarta.servlet.http.HttpSession;
+import java.time.LocalDateTime;
 
-/**
- * Controlador encargado de gestionar las vistas relacionadas
- * con el registro de votantes.
- */
 @Controller
+@RequestMapping("/votante")
 public class VotanteController {
 
-    /**
-     * Muestra el formulario de registro de votantes.
-     *
-     * @return Nombre de la vista que contiene el formulario de registro.
-     */
-    @GetMapping("/votantes/registro")
-    public String mostrarFormulario() {
-        return "registro";
+    @Autowired
+    private VotanteRepository votanteRepository;
+
+    @Autowired
+    private OtpRepository otpRepository;
+
+    @GetMapping("/login")
+    public String mostrarLogin() {
+        return "votante/login";
+    }
+
+    @PostMapping("/login")
+    public String procesarDni(@RequestParam String dni,
+                              HttpSession session,
+                              Model model) {
+
+        Votante votante = votanteRepository.findByDni(dni).orElse(null);
+
+        if (votante == null) {
+            model.addAttribute("error", "DNI no encontrado");
+            return "votante/login";
+        }
+
+        String codigo = String.valueOf((int)(Math.random()*900000)+100000);
+
+        Otp otp = new Otp(
+                votante,
+                codigo,
+                LocalDateTime.now(),
+                LocalDateTime.now().plusMinutes(5)
+        );
+
+        otpRepository.save(otp);
+
+        System.out.println("OTP para " + dni + ": " + codigo);
+
+        session.setAttribute("dniVotante", dni);
+
+        model.addAttribute("mensaje",
+                "Se envió el código OTP a tu celular");
+
+        return "votante/verificar-otp";
+    }
+
+    @GetMapping("/verificar-otp")
+    public String mostrarVerificarOtp() {
+        return "votante/verificar-otp";
+    }
+
+    @PostMapping("/verificar-otp")
+    public String procesarOtp(@RequestParam String codigo,
+                              HttpSession session,
+                              Model model) {
+
+        String dni = (String) session.getAttribute("dniVotante");
+
+        if (dni == null)
+            return "redirect:/votante/login";
+
+        Votante votante = votanteRepository.findByDni(dni).orElse(null);
+
+        if (votante == null)
+            return "redirect:/votante/login";
+
+        Otp otp = otpRepository.findByVotanteAndUsadoFalse(votante).orElse(null);
+
+        if (otp == null || !otp.getCodigo().equals(codigo)) {
+
+            model.addAttribute("error",
+                    "Código OTP incorrecto");
+
+            return "votante/verificar-otp";
+        }
+
+        if (otp.getFechaExpiracion().isBefore(LocalDateTime.now())) {
+
+            model.addAttribute("error",
+                    "El código OTP ha expirado");
+
+            return "votante/verificar-otp";
+        }
+
+        otp.setUsado(true);
+
+        otpRepository.save(otp);
+
+        session.setAttribute("votanteLogueado", votante);
+
+        return "redirect:/voto/elecciones";
+    }
+
+    @GetMapping("/logout")
+    public String logout(HttpSession session) {
+
+        session.invalidate();
+
+        return "redirect:/votante/login";
     }
 }
