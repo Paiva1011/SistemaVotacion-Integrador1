@@ -114,7 +114,7 @@
             background: #1a3c6e;
             color: white;
             padding: 0.8rem 1rem;
-            text-align: left;
+            text-align: center;
             font-size: 0.85rem;
         }
 
@@ -122,6 +122,7 @@
             padding: 0.8rem 1rem;
             border-bottom: 1px solid #eee;
             font-size: 0.88rem;
+            text-align: center;
         }
 
         tr:hover td {
@@ -167,6 +168,16 @@
         .btn-cerrar {
             background: #fde8e8;
             color: #c0392b;
+        }
+
+        .btn-publicar{
+            background:#fff3e0; 
+            color:#e65100;
+        }
+
+        .btn-resultados{
+            background:#e8f5e9; 
+            color:#2e7d32;
         }
 
         .btn-eliminar {
@@ -238,19 +249,23 @@
                         <td th:text="${#temporals.format(e.fechaInicio, 'dd/MM/yyyy HH:mm')}">Fecha</td>
                         <td th:text="${#temporals.format(e.fechaFin,    'dd/MM/yyyy HH:mm')}">Fecha</td>
                         <td><span class="badge" th:classappend="${e.estado}" th:text="${e.estado}"></span></td>
-                        <td>
-                            <a class="btn-accion btn-activar"
+                        <td style="white-space: nowrap;">
+                            <a class="btn-accion btn-activar" th:if="${!e.publicada}"
                                 th:href="@{/elecciones/estado/{id}/ACTIVA(id=${e.idEleccion})}">Activar</a>
-                            <a class="btn-accion btn-cerrar"
+                            <a class="btn-accion btn-cerrar" th:if="${!e.publicada}"
                                 th:href="@{/elecciones/estado/{id}/CERRADA(id=${e.idEleccion})}">Cerrar</a>
-                            <a class="btn-accion" th:if="${e.estado == 'CERRADA' and !e.publicada}"
-                                th:href="@{/elecciones/publicar/{id}(id=${e.idEleccion})}"
-                                style="background:#fff3e0; color:#e65100;">Publicar</a>
-                            <a class="btn-accion"
-                                th:href="@{'/resultados/admin/' + ${e.idEleccion}}"
-                                style="background:#e8f5e9; color:#2e7d32;">Resultados</a>
+                            <a class="btn-accion btn-publicar" th:if="${e.estado == 'CERRADA' and !e.publicada}"
+                                th:onclick="'abrirModalPublicar(\'/elecciones/publicar/' + ${e.idEleccion} + '\')'"
+                                href="javascript:void(0)">Publicar</a>
+                            <span th:if="${e.publicada}" style="background:#e8f5e9; color:#2e7d32; padding: 3px 10px;
+                                border-radius: 5px; font-size: 0.78rem; font-weight: 600; margin-right: 3px;">
+                                ✅ Publicada
+                            </span>
+                            <a class="btn-accion btn-resultados" th:href="@{'/resultados/admin/' + ${e.idEleccion}}"
+                                >Resultados</a>
                             <a class="btn-accion btn-eliminar"
-                                th:href="@{'/elecciones/eliminar/' + ${e.idEleccion}}">Eliminar</a>
+                                th:onclick="'abrirModalEliminar(\'/elecciones/eliminar/' + ${e.idEleccion} + '\')'"
+                                href="javascript:void(0)">Eliminar</a>
                         </td>
                     </tr>
                     <tr th:if="${#lists.isEmpty(elecciones)}">
@@ -262,6 +277,154 @@
             </table>
         </div>
     </main>
+    <!-- Modal confirmar eliminación -->
+    <div id="modalEliminar" style="
+    display: none; position: fixed; inset: 0;
+    background: rgba(0,0,0,0.5); z-index: 999;
+    align-items: center; justify-content: center;">
+        <div style="background: white; border-radius: 16px; padding: 2rem;
+        max-width: 380px; width: 90%; text-align: center;
+        box-shadow: 0 20px 60px rgba(0,0,0,0.3);">
+            <div style="font-size: 2.5rem; margin-bottom: 1rem;">🗑️</div>
+            <h2 style="color: #c0392b; font-size: 1.1rem; margin-bottom: 0.5rem;">
+                Eliminar Elección
+            </h2>
+            <p style="color: #555; font-size: 0.88rem; margin-bottom: 1.2rem;">
+                Está seguro? Esta acción eliminará todos los candidatos, votos y comprobantes asociados a esta elección.
+                Se eliminará información sensible.
+                Ingresa tu contraseña para confirmar.
+            </p>
+            <input type="password" id="passwordConfirm" placeholder="Ingresa tu contraseña" style="width:100%; padding: 0.7rem 1rem; border: 1.5px solid #ddd;
+                    border-radius: 8px; font-size: 0.95rem; margin-bottom: 0.5rem;" />
+            <p id="errorPassword" style="color:#c0392b; font-size:0.82rem;
+                    margin-bottom: 0.8rem; display:none;">
+                Contraseña incorrecta
+            </p>
+            <div style="display: flex; gap: 10px; margin-top: 0.5rem;">
+                <button onclick="cerrarModal()" style="
+                flex: 1; padding: 0.75rem; border: 2px solid #ddd;
+                background: white; border-radius: 8px; cursor: pointer;
+                font-size: 0.9rem; font-weight: 600; color: #666;">
+                    Cancelar
+                </button>
+                <button onclick="confirmarEliminar()" style="
+                flex: 1; padding: 0.75rem; background: #c0392b;
+                color: white; border: none; border-radius: 8px;
+                cursor: pointer; font-size: 0.9rem; font-weight: 600;">
+                    Eliminar
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal confirmar publicación -->
+    <div id="modalPublicar" style="
+    display: none; position: fixed; inset: 0;
+    background: rgba(0,0,0,0.5); z-index: 999;
+    align-items: center; justify-content: center;">
+        <div style="
+        background: white; border-radius: 16px; padding: 2rem;
+        max-width: 380px; width: 90%; text-align: center;
+        box-shadow: 0 20px 60px rgba(0,0,0,0.3);">
+            <div style="font-size: 2.5rem; margin-bottom: 1rem;">📢</div>
+            <h2 style="color: #1a3c6e; font-size: 1.1rem; margin-bottom: 0.5rem;">
+                Publicar Resultados
+            </h2>
+            <p style="color: #555; font-size: 0.88rem; margin-bottom: 1.2rem;">
+                Una vez publicados los resultados serán visibles para todos los votantes.
+                Ingresa tu contraseña para confirmar.
+            </p>
+            <input type="password" id="passwordPublicar" placeholder="Ingresa tu contraseña" style="width:100%; padding: 0.7rem 1rem; border: 1.5px solid #ddd;
+                    border-radius: 8px; font-size: 0.95rem; margin-bottom: 0.5rem;" />
+            <p id="errorPasswordPublicar" style="color:#c0392b; font-size:0.82rem;
+                margin-bottom: 0.8rem; display:none;">
+                Contraseña incorrecta
+            </p>
+            <div style="display: flex; gap: 10px; margin-top: 0.5rem;">
+                <button onclick="cerrarModalPublicar()" style="
+                flex: 1; padding: 0.75rem; border: 2px solid #ddd;
+                background: white; border-radius: 8px; cursor: pointer;
+                font-size: 0.9rem; font-weight: 600; color: #666;">
+                    Cancelar
+                </button>
+                <button onclick="confirmarPublicar()" style="
+                flex: 1; padding: 0.75rem; background: #1a3c6e;
+                color: white; border: none; border-radius: 8px;
+                cursor: pointer; font-size: 0.9rem; font-weight: 600;">
+                    Publicar
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let urlEliminar = '';
+
+        function abrirModalEliminar(url) {
+            urlEliminar = url;
+            document.getElementById('passwordConfirm').value = '';
+            document.getElementById('errorPassword').style.display = 'none';
+            document.getElementById('modalEliminar').style.display = 'flex';
+        }
+
+        function cerrarModal() {
+            document.getElementById('modalEliminar').style.display = 'none';
+        }
+
+        function confirmarEliminar() {
+            const password = document.getElementById('passwordConfirm').value;
+            if (!password) {
+                document.getElementById('errorPassword').textContent = 'Ingresa tu contraseña';
+                document.getElementById('errorPassword').style.display = 'block';
+                return;
+            }
+
+            // Llama al endpoint de verificación
+            fetch('/elecciones/verificar-password?password=' + encodeURIComponent(password))
+                .then(res => res.json())
+                .then(data => {
+                    if (data.valido) {
+                        window.location.href = urlEliminar;
+                    } else {
+                        document.getElementById('errorPassword').textContent = 'Contraseña incorrecta';
+                        document.getElementById('errorPassword').style.display = 'block';
+                    }
+                });
+        }
+
+        let urlPublicar = '';
+
+        function abrirModalPublicar(url) {
+            urlPublicar = url;
+            document.getElementById('passwordPublicar').value = '';
+            document.getElementById('errorPasswordPublicar').style.display = 'none';
+            document.getElementById('modalPublicar').style.display = 'flex';
+        }
+
+        function cerrarModalPublicar() {
+            document.getElementById('modalPublicar').style.display = 'none';
+        }
+
+        function confirmarPublicar() {
+            const password = document.getElementById('passwordPublicar').value;
+            if (!password) {
+                document.getElementById('errorPasswordPublicar').textContent = 'Ingresa tu contraseña';
+                document.getElementById('errorPasswordPublicar').style.display = 'block';
+                return;
+            }
+
+            fetch('/elecciones/verificar-password?password=' + encodeURIComponent(password))
+                .then(res => res.json())
+                .then(data => {
+                    if (data.valido) {
+                        window.location.href = urlPublicar;
+                    } else {
+                        document.getElementById('errorPasswordPublicar').textContent = 'Contraseña incorrecta';
+                        document.getElementById('errorPasswordPublicar').style.display = 'block';
+                    }
+                });
+        }
+    </script>
 </body>
 
 </html>

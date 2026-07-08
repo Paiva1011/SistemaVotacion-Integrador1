@@ -1,14 +1,15 @@
 package com.votacion.sistema_votacion.controller;
 
-import com.votacion.sistema_votacion.model.Eleccion;
-import com.votacion.sistema_votacion.repository.EleccionRepository;
+import com.votacion.sistema_votacion.model.*;
+import com.votacion.sistema_votacion.repository.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import jakarta.servlet.http.HttpSession;
-
+import java.util.List;
 import java.time.LocalDateTime;
+import java.util.Map;
 
 @Controller
 @RequestMapping("/elecciones")
@@ -16,6 +17,12 @@ public class EleccionController {
 
     @Autowired
     private EleccionRepository eleccionRepository;
+    @Autowired 
+    private CandidatoRepository candidatoRepository;
+    @Autowired 
+    private VotoRepository votoRepository;
+    @Autowired 
+    private ComprobanteRepository comprobanteRepository;
 
     // Listar elecciones (admin)
     @GetMapping
@@ -68,9 +75,38 @@ public class EleccionController {
         if (session.getAttribute("adminLogueado") == null)
             return "redirect:/admin/login";
 
+    // 1. Eliminar comprobantes de los votos(de la eleccion)
+    List<Voto> votos = votoRepository.findAll().stream()
+        .filter(v -> v.getEleccion().getIdEleccion().equals(id))
+        .collect(java.util.stream.Collectors.toList());
+
+    for (Voto voto : votos) {
+        comprobanteRepository.findAll().stream()
+            .filter(c -> c.getVoto().getIdVoto().equals(voto.getIdVoto()))
+            .forEach(c -> comprobanteRepository.delete(c));
+    }
+
+    // 2. Eliminar votos(de la eleccion)
+    votoRepository.deleteAll(votos);
+
+    // 3. Eliminar candidatos(dela eleccion)
+    List<Candidato> candidatos = candidatoRepository.findAll().stream()
+        .filter(c -> c.getEleccion().getIdEleccion().equals(id))
+        .collect(java.util.stream.Collectors.toList());
+    candidatoRepository.deleteAll(candidatos);
+    //4. Eliminar la eleccion
         eleccionRepository.deleteById(id);
         return "redirect:/elecciones";
     }
+
+    // Verificar contraseña del admin logueado
+    @GetMapping("/verificar-password")
+    @ResponseBody
+    public Map<String, Boolean> verificarPassword(@RequestParam String password,HttpSession session) {
+    Administrador admin = (Administrador) session.getAttribute("adminLogueado");
+    boolean valido = admin != null && admin.getPassword().equals(password);
+    return Map.of("valido", valido);
+}
 
     // Publicar resultados de una elección
     @GetMapping("/publicar/{id}")
