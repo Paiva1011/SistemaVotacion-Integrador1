@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="UTF-8" />
-    <title>Gestionar Candidatos</title>
+    <title>Votantes</title>
     <style>
         * {
             box-sizing: border-box;
@@ -33,10 +33,10 @@
             color: white;
             text-decoration: none;
             margin-left: 1rem;
-            font-size: 0.88rem;
             background: rgba(255, 255, 255, 0.2);
             padding: 5px 12px;
             border-radius: 20px;
+            font-size: 0.88rem;
         }
 
         main {
@@ -73,8 +73,7 @@
             margin-bottom: 4px;
         }
 
-        input,
-        select {
+        input {
             width: 100%;
             padding: 0.65rem 0.9rem;
             border: 1.5px solid #ddd;
@@ -82,14 +81,9 @@
             font-size: 0.9rem;
         }
 
-        input:focus,
-        select:focus {
+        input:focus {
             outline: none;
             border-color: #1a3c6e;
-        }
-
-        .full {
-            grid-column: 1 / -1;
         }
 
         .btn-guardar {
@@ -127,13 +121,6 @@
             background: #f8f9fa;
         }
 
-        .btn-pdf {
-            color: #1a3c6e;
-            font-size: 0.82rem;
-            text-decoration: none;
-            font-weight: 600;
-        }
-
         .btn-eliminar {
             padding: 4px 10px;
             border-radius: 6px;
@@ -143,93 +130,118 @@
             text-decoration: none;
             font-weight: 600;
         }
+
+        .error {
+            background: #fde8e8;
+            color: #c0392b;
+            padding: 0.75rem;
+            border-radius: 8px;
+            font-size: 0.88rem;
+            margin-bottom: 1rem;
+        }
+
+        .buscador {
+            width: 100%;
+            padding: 0.65rem 1rem;
+            border: 1.5px solid #ddd;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            margin-bottom: 1.2rem;
+        }
+
+        .total {
+            font-size: 0.85rem;
+            color: #888;
+            margin-bottom: 1rem;
+        }
     </style>
 </head>
 
 <body>
     <header>
-        <h1>⚙️ Gestionar Candidatos</h1>
+        <h1>👥 Gestionar Votantes</h1>
         <div class="nav">
             <a th:href="@{/admin/dashboard}">Dashboard</a>
             <a th:href="@{/admin/logout}">Cerrar sesión</a>
         </div>
     </header>
     <main>
-        <!-- Formulario nuevo candidato -->
+        <!-- Formulario nuevo votante -->
         <div class="seccion">
-            <h2>➕ Nuevo Candidato</h2>
-            <form method="post" th:action="@{/candidatos/guardar}" enctype="multipart/form-data">
+            <h2>➕ Registrar Votante</h2>
+            <div th:if="${error}" class="error" th:text="${error}"></div>
+            <form method="post" th:action="@{/votantes/guardar}">
                 <div class="form-grid">
                     <div>
+                        <label>DNI</label>
+                        <input type="text" name="dni" required maxlength="8" placeholder="Ej: 12345678" />
+                    </div>
+                    <div>
+                        <label>Celular</label>
+                        <input type="text" name="celular" placeholder="Ej: 999888777" />
+                    </div>
+                    <div>
                         <label>Nombres</label>
-                        <input type="text" name="nombres" required placeholder="Nombres del candidato" />
+                        <input type="text" name="nombres" required placeholder="Nombres" />
                     </div>
                     <div>
                         <label>Apellidos</label>
-                        <input type="text" name="apellidos" required placeholder="Apellidos del candidato" />
-                    </div>
-                    <div>
-                        <label>Partido Político</label>
-                        <select name="idPartido" required>
-                            <option value="">— Selecciona —</option>
-                            <option th:each="p : ${partidos}" th:value="${p.idPartido}" th:text="${p.nombre}">Partido
-                            </option>
-                        </select>
-                    </div>
-                    <div>
-                        <label>Proceso Electoral</label>
-                        <select name="idEleccion" required>
-                            <option value="">— Selecciona —</option>
-                            <option th:each="e : ${elecciones}" th:value="${e.idEleccion}" th:text="${e.nombre}">
-                                Elección</option>
-                        </select>
-                    </div>
-                    <div class="full">
-                        <label>Propuestas</label>
-                        <input type="file" name="propuestasPdf" accept=".pdf" />
+                        <input type="text" name="apellidos" required placeholder="Apellidos" />
                     </div>
                 </div>
-                <button type="submit" class="btn-guardar">Guardar Candidato</button>
+                <button type="submit" class="btn-guardar">Registrar Votante</button>
             </form>
         </div>
 
-        <!-- Lista de candidatos -->
+        <!-- Lista de votantes -->
         <div class="seccion">
-            <h2>📋 Candidatos Registrados</h2>
+            <h2>📋 Votantes Registrados</h2>
+            <p class="total">Total: <strong th:text="${#lists.size(votantes)}">0</strong> votantes</p>
+            <input class="buscador" type="text" id="buscador" placeholder="🔍 Buscar por nombre o DNI..."
+                onkeyup="filtrar()" />
             <table>
                 <thead>
                     <tr>
-                        <th>Nombre completo</th>
-                        <th>Partido</th>
-                        <th>Elección</th>
-                        <th>Propuestas</th>
+                        <th>#</th>
+                        <th>DNI</th>
+                        <th>Nombres</th>
+                        <th>Apellidos</th>
+                        <th>Celular</th>
                         <th>Acciones</th>
                     </tr>
                 </thead>
-                <tbody>
-                    <tr th:each="c : ${candidatos}">
-                        <td th:text="${c.nombres + ' ' + c.apellidos}">Nombre</td>
-                        <td th:text="${c.partido.nombre}">Partido</td>
-                        <td th:text="${c.eleccion.nombre}">Elección</td>
+                <tbody id="tablaVotantes">
+                    <tr th:each="v, i : ${votantes}">
+                        <td th:text="${i.count}">1</td>
+                        <td th:text="${v.dni}">DNI</td>
+                        <td th:text="${v.nombres}">Nombres</td>
+                        <td th:text="${v.apellidos}">Apellidos</td>
+                        <td th:text="${v.celular}">Celular</td>
                         <td>
-                            <a class="btn-pdf" th:if="${c.propuestasPdf != null}"
-                                th:href="@{'/archivos/' + ${c.propuestasPdf}}" target="_blank">📄 Ver PDF</a>
-                            <span th:unless="${c.propuestasPdf != null}" style="color:#aaa">Sin PDF</span>
-                        </td>
-                        <td>
-                            <a class="btn-eliminar"
-                                th:href="@{/candidatos/eliminar/{id}(id=${c.idCandidato})}">Eliminar</a>
+                            <a class="btn-eliminar" th:href="@{'/votantes/eliminar/' + ${v.idVotante}}">
+                                Eliminar
+                            </a>
                         </td>
                     </tr>
-                    <tr th:if="${#lists.isEmpty(candidatos)}">
-                        <td colspan="5" style="text-align:center; color:#aaa; padding:2rem">
-                            No hay candidatos registrados
+                    <tr th:if="${#lists.isEmpty(votantes)}">
+                        <td colspan="6" style="text-align:center; color:#aaa; padding:2rem;">
+                            No hay votantes registrados
                         </td>
                     </tr>
                 </tbody>
             </table>
         </div>
     </main>
+    <script>
+        function filtrar() {
+            const texto = document.getElementById('buscador').value.toLowerCase();
+            const filas = document.querySelectorAll('#tablaVotantes tr');
+            filas.forEach(fila => {
+                const contenido = fila.textContent.toLowerCase();
+                fila.style.display = contenido.includes(texto) ? '' : 'none';
+            });
+        }
+    </script>
 </body>
 
 </html>

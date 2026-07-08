@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="UTF-8" />
-    <title>Gestionar Candidatos</title>
+    <title>Partidos Políticos</title>
     <style>
         * {
             box-sizing: border-box;
@@ -33,14 +33,14 @@
             color: white;
             text-decoration: none;
             margin-left: 1rem;
-            font-size: 0.88rem;
             background: rgba(255, 255, 255, 0.2);
             padding: 5px 12px;
             border-radius: 20px;
+            font-size: 0.88rem;
         }
 
         main {
-            max-width: 1000px;
+            max-width: 900px;
             margin: 2rem auto;
             padding: 0 1rem;
         }
@@ -73,8 +73,7 @@
             margin-bottom: 4px;
         }
 
-        input,
-        select {
+        input {
             width: 100%;
             padding: 0.65rem 0.9rem;
             border: 1.5px solid #ddd;
@@ -82,14 +81,9 @@
             font-size: 0.9rem;
         }
 
-        input:focus,
-        select:focus {
+        input:focus {
             outline: none;
             border-color: #1a3c6e;
-        }
-
-        .full {
-            grid-column: 1 / -1;
         }
 
         .btn-guardar {
@@ -127,13 +121,6 @@
             background: #f8f9fa;
         }
 
-        .btn-pdf {
-            color: #1a3c6e;
-            font-size: 0.82rem;
-            text-decoration: none;
-            font-weight: 600;
-        }
-
         .btn-eliminar {
             padding: 4px 10px;
             border-radius: 6px;
@@ -143,87 +130,72 @@
             text-decoration: none;
             font-weight: 600;
         }
+
+        .error {
+            background: #fde8e8;
+            color: #c0392b;
+            padding: 0.75rem;
+            border-radius: 8px;
+            font-size: 0.88rem;
+            margin-bottom: 1rem;
+        }
     </style>
 </head>
 
 <body>
     <header>
-        <h1>⚙️ Gestionar Candidatos</h1>
+        <h1>🏛️ Partidos Políticos</h1>
         <div class="nav">
             <a th:href="@{/admin/dashboard}">Dashboard</a>
             <a th:href="@{/admin/logout}">Cerrar sesión</a>
         </div>
     </header>
     <main>
-        <!-- Formulario nuevo candidato -->
+        <!-- Formulario nuevo partido -->
         <div class="seccion">
-            <h2>➕ Nuevo Candidato</h2>
-            <form method="post" th:action="@{/candidatos/guardar}" enctype="multipart/form-data">
+            <h2>➕ Nuevo Partido Político</h2>
+            <div th:if="${error}" class="error" th:text="${error}"></div>
+            <form method="post" th:action="@{/partidos/guardar}">
                 <div class="form-grid">
                     <div>
-                        <label>Nombres</label>
-                        <input type="text" name="nombres" required placeholder="Nombres del candidato" />
+                        <label>Nombre del partido</label>
+                        <input type="text" name="nombre" required placeholder="Ej: Partido Democrático" />
                     </div>
                     <div>
-                        <label>Apellidos</label>
-                        <input type="text" name="apellidos" required placeholder="Apellidos del candidato" />
-                    </div>
-                    <div>
-                        <label>Partido Político</label>
-                        <select name="idPartido" required>
-                            <option value="">— Selecciona —</option>
-                            <option th:each="p : ${partidos}" th:value="${p.idPartido}" th:text="${p.nombre}">Partido
-                            </option>
-                        </select>
-                    </div>
-                    <div>
-                        <label>Proceso Electoral</label>
-                        <select name="idEleccion" required>
-                            <option value="">— Selecciona —</option>
-                            <option th:each="e : ${elecciones}" th:value="${e.idEleccion}" th:text="${e.nombre}">
-                                Elección</option>
-                        </select>
-                    </div>
-                    <div class="full">
-                        <label>Propuestas</label>
-                        <input type="file" name="propuestasPdf" accept=".pdf" />
+                        <label>Símbolo</label>
+                        <input type="text" name="simbolo" placeholder="Ej: 🏛️ o siglas" />
                     </div>
                 </div>
-                <button type="submit" class="btn-guardar">Guardar Candidato</button>
+                <button type="submit" class="btn-guardar">Guardar Partido</button>
             </form>
         </div>
 
-        <!-- Lista de candidatos -->
+        <!-- Lista de partidos -->
         <div class="seccion">
-            <h2>📋 Candidatos Registrados</h2>
+            <h2>📋 Partidos Registrados</h2>
             <table>
                 <thead>
                     <tr>
-                        <th>Nombre completo</th>
-                        <th>Partido</th>
-                        <th>Elección</th>
-                        <th>Propuestas</th>
+                        <th>#</th>
+                        <th>Nombre</th>
+                        <th>Símbolo</th>
                         <th>Acciones</th>
                     </tr>
                 </thead>
                 <tbody>
-                    <tr th:each="c : ${candidatos}">
-                        <td th:text="${c.nombres + ' ' + c.apellidos}">Nombre</td>
-                        <td th:text="${c.partido.nombre}">Partido</td>
-                        <td th:text="${c.eleccion.nombre}">Elección</td>
+                    <tr th:each="p, i : ${partidos}">
+                        <td th:text="${i.count}">1</td>
+                        <td th:text="${p.nombre}">Nombre</td>
+                        <td th:text="${p.simbolo}">🏛️</td>
                         <td>
-                            <a class="btn-pdf" th:if="${c.propuestasPdf != null}"
-                                th:href="@{'/archivos/' + ${c.propuestasPdf}}" target="_blank">📄 Ver PDF</a>
-                            <span th:unless="${c.propuestasPdf != null}" style="color:#aaa">Sin PDF</span>
-                        </td>
-                        <td>
-                            <a class="btn-eliminar"
-                                th:href="@{/candidatos/eliminar/{id}(id=${c.idCandidato})}">Eliminar</a>
+                            <a class="btn-eliminar" th:href="@{'/partidos/eliminar/' + ${p.idPartido}}">
+                                Eliminar
+                            </a>
                         </td>
                     </tr>
-                    <tr th:if="${#lists.isEmpty(candidatos)}">
-                        <td colspan="5" style="text-align:center; color:#aaa; padding:2rem">
-                            No hay candidatos registrados
+                    <tr th:if="${#lists.isEmpty(partidos)}">
+                        <td colspan="4" style="text-align:center; color:#aaa; padding:2rem;">
+                            No hay partidos registrados
                         </td>
                     </tr>
                 </tbody>
