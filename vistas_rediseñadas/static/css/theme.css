@@ -1,9 +1,3 @@
-/* ============================================================
-   SVES · Design tokens compartidos
-   Importar en cada vista con:
-   <link rel="stylesheet" th:href="@{/css/theme.css}" />
-   ============================================================ */
-
 :root {
   --color-primary: #1a3c6e;
   --color-primary-dark: #0d2240;
