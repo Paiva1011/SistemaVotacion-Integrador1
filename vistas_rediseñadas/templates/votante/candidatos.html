@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Candidatos</title>
+    <link rel="stylesheet" th:href="@{/css/theme.css}" />
+    <style>
+        main { max-width: 900px; margin: 2rem auto; padding: 0 1rem; }
+        .titulo-eleccion { font-size: 1.2rem; color: var(--color-primary); margin-bottom: 0.4rem; }
+        .subtitulo { font-size: 0.88rem; color: var(--color-text-muted); margin-bottom: var(--space-3); }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+            gap: var(--space-3);
+        }
+
+        /* Cada opción es un <label> que envuelve un radio real (accesible por teclado) */
+        .opcion { position: relative; }
+        .opcion input[type="radio"] {
+            position: absolute;
+            opacity: 0;
+            width: 1px; height: 1px;
+        }
+        .opcion label {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.6rem;
+            padding: var(--space-3);
+            background: var(--color-surface);
+            border-radius: var(--radius-md);
+            box-shadow: var(--shadow-card);
+            border: 2px solid transparent;
+            cursor: pointer;
+            transition: transform var(--transition-base), box-shadow var(--transition-base);
+        }
+        .opcion label:hover { transform: translateY(-3px); box-shadow: 0 6px 20px rgba(0,0,0,0.12); }
+        .opcion input[type="radio"]:checked + label {
+            border-color: var(--color-primary);
+            background: var(--color-primary-light);
+        }
+        .opcion input[type="radio"]:focus-visible + label {
+            outline: 3px solid #5b8def;
+            outline-offset: 2px;
+        }
+
+        .card-icon { font-size: 2.5rem; }
+        .opcion h3 { font-size: 1rem; color: var(--color-primary); text-align: center; }
+        .opcion .partido { font-size: 0.82rem; color: var(--color-text-muted); text-align: center; }
+        .opcion .blanco { color: #aaa; font-style: italic; }
+
+        .btn-pdf {
+            display: inline-block;
+            padding: 0.4rem 0.8rem;
+            background: var(--color-bg);
+            color: var(--color-primary);
+            border-radius: 6px;
+            text-decoration: none;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+        .btn-pdf:hover { background: #e0e8f0; }
+
+        .btn-votar { margin-top: var(--space-3); }
+
+        /* Modal */
+        .modal-overlay {
+            display: none;
+            position: fixed; inset: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 100;
+            align-items: center; justify-content: center;
+        }
+        .modal-overlay.visible { display: flex; }
+        .modal {
+            background: var(--color-surface);
+            border-radius: var(--radius-lg);
+            padding: 2rem;
+            max-width: 380px; width: 90%;
+            text-align: center;
+            box-shadow: var(--shadow-modal);
+        }
+        .modal h2 { font-size: 1.2rem; color: var(--color-primary); margin-bottom: 0.5rem; }
+        .modal p { font-size: 0.9rem; color: #555; margin-bottom: var(--space-3); }
+        .modal-candidato { font-weight: 700; color: var(--color-primary); font-size: 1rem; }
+        .modal-buttons { display: flex; gap: 10px; }
+        .btn-cancelar {
+            flex: 1; padding: 0.75rem;
+            border: 2px solid var(--color-border); background: #fff;
+            border-radius: var(--radius-sm); cursor: pointer;
+            font-size: 0.9rem; font-weight: 600; color: #666;
+        }
+        .btn-confirmar {
+            flex: 1; padding: 0.75rem;
+            background: var(--color-primary); color: #fff;
+            border: none; border-radius: var(--radius-sm);
+            cursor: pointer; font-size: 0.9rem; font-weight: 600;
+        }
+    </style>
+</head>
+
+<body>
+    <header class="app-header">
+        <h1>SVÉS</h1>
+        <a class="logout" th:href="@{/votante/logout}">Cerrar sesión</a>
+    </header>
+
+    <main>
+        <h2 class="titulo-eleccion" th:text="${eleccion.nombre}">Nombre elección</h2>
+        <p class="subtitulo">Selecciona tu candidato y confirma tu voto</p>
+
+        <form method="post" th:action="@{/voto/emitir}" id="formVoto">
+            <input type="hidden" name="idEleccion" th:value="${eleccion.idEleccion}" />
+
+            <fieldset style="border:none; padding:0; margin:0;">
+                <legend class="sr-only" style="position:absolute; left:-9999px;">Opciones de candidato</legend>
+
+                <div class="grid" role="radiogroup" aria-label="Selecciona tu candidato">
+                    <div class="opcion" th:each="c : ${candidatos}">
+                        <input type="radio" name="idCandidato" th:id="${'c' + c.idCandidato}"
+                               th:value="${c.idCandidato}"
+                               th:data-nombre="${c.nombres + ' ' + c.apellidos}"
+                               onchange="onSeleccionar(this)" />
+                        <label th:for="${'c' + c.idCandidato}">
+                            <div class="card-icon" aria-hidden="true">👤</div>
+                            <h3 th:text="${c.nombres + ' ' + c.apellidos}">Nombre</h3>
+                            <p class="partido" th:text="${c.partido.nombre}">Partido</p>
+                            <a class="btn-pdf" th:if="${c.propuestasPdf != null}"
+                               th:href="@{'/candidatos/archivos/' + ${c.propuestasPdf}}"
+                               target="_blank" onclick="event.stopPropagation()">
+                                📄 Ver propuestas
+                            </a>
+                        </label>
+                    </div>
+
+                    <div class="opcion">
+                        <input type="radio" name="idCandidato" id="cBlanco" value="0"
+                               data-nombre="Voto en Blanco" onchange="onSeleccionar(this)" />
+                        <label for="cBlanco">
+                            <div class="card-icon" aria-hidden="true">⬜</div>
+                            <h3 class="blanco">Voto en Blanco</h3>
+                            <p class="partido blanco">Ningún candidato</p>
+                        </label>
+                    </div>
+                </div>
+            </fieldset>
+
+            <button type="button" class="btn btn-votar" id="btnVotar" disabled onclick="abrirModal()">
+                Confirmar Voto
+            </button>
+        </form>
+    </main>
+
+    <div class="modal-overlay" id="modalOverlay">
+        <div class="modal">
+            <h2>¿Confirmas tu voto?</h2>
+            <p>Has seleccionado a:</p>
+            <p class="modal-candidato" id="nombreModalCandidato"></p>
+            <br>
+            <p>Esta acción no se puede deshacer.</p>
+            <div class="modal-buttons">
+                <button class="btn-cancelar" onclick="cerrarModal()">Cancelar</button>
+                <button class="btn-confirmar" onclick="document.getElementById('formVoto').submit()">
+                    Sí, confirmar
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let nombreSeleccionado = '';
+
+        function onSeleccionar(radio) {
+            nombreSeleccionado = radio.getAttribute('data-nombre');
+            document.getElementById('btnVotar').disabled = false;
+        }
+
+        function abrirModal() {
+            document.getElementById('nombreModalCandidato').textContent = nombreSeleccionado;
+            document.getElementById('modalOverlay').classList.add('visible');
+        }
+
+        function cerrarModal() {
+            document.getElementById('modalOverlay').classList.remove('visible');
+        }
+    </script>
+</body>
+
+</html>

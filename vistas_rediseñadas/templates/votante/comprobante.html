@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Comprobante de Voto</title>
+    <link rel="stylesheet" th:href="@{/css/theme.css}" />
+    <style>
+        body {
+            background: linear-gradient(135deg, var(--color-primary), var(--color-primary-dark));
+            min-height: 100vh;
+            display: flex; align-items: center; justify-content: center;
+            padding: 1rem;
+        }
+        .comprobante-card {
+            padding: 2.5rem;
+            width: 100%;
+            max-width: 460px;
+            box-shadow: var(--shadow-modal);
+            text-align: center;
+        }
+        .check-icon { font-size: 3.5rem; margin-bottom: var(--space-2); }
+        h1 { font-size: 1.4rem; color: var(--color-primary); margin-bottom: 0.4rem; }
+        .subtitulo { font-size: 0.88rem; color: var(--color-text-muted); margin-bottom: var(--space-4); }
+
+        .comprobante-box {
+            background: #f8f9fa;
+            border-radius: var(--radius-md);
+            padding: var(--space-3);
+            margin-bottom: var(--space-3);
+            text-align: left;
+        }
+        .fila {
+            display: flex; justify-content: space-between;
+            padding: 0.6rem 0; border-bottom: 1px solid #eee;
+            font-size: 0.9rem;
+        }
+        .fila:last-child { border-bottom: none; }
+        .fila .etiqueta { color: var(--color-text-muted); font-weight: 500; }
+        .fila .valor { color: var(--color-primary); font-weight: 600; }
+        .codigo {
+            font-family: 'Courier New', monospace; font-size: 1.15rem;
+            letter-spacing: 2px;
+        }
+
+        .anonimo-msg {
+            background: var(--color-success-bg);
+            border-radius: var(--radius-sm);
+            padding: 0.9rem; font-size: 0.85rem;
+            color: var(--color-success-text);
+            margin-bottom: var(--space-3);
+            line-height: 1.5;
+        }
+    </style>
+</head>
+<body>
+<div class="card comprobante-card">
+    <div class="check-icon" aria-hidden="true">✅</div>
+    <h1>¡Voto Registrado!</h1>
+    <p class="subtitulo">Tu participación ha sido registrada exitosamente</p>
+
+    <div class="comprobante-box">
+        <div class="fila">
+            <span class="etiqueta">Código de verificación</span>
+            <span class="valor codigo" th:text="${comprobante.codigoVerificacion}">XXXXXXXX</span>
+        </div>
+        <div class="fila">
+            <span class="etiqueta">Fecha y hora</span>
+            <span class="valor" th:text="${#temporals.format(comprobante.fechaEmision, 'dd/MM/yyyy HH:mm:ss')}">
+                01/01/2026 12:00:00
+            </span>
+        </div>
+        <div class="fila">
+            <span class="etiqueta">DNI</span>
+            <span class="valor" th:text="${comprobante.voto.votante.dni.substring(0,2) + '****' + comprobante.voto.votante.dni.substring(6)}">
+                12****78
+            </span>
+        </div>
+        <div class="fila">
+            <span class="etiqueta">Nombres</span>
+            <span class="valor" th:text="${comprobante.voto.votante.nombres + ' ' + comprobante.voto.votante.apellidos}">
+                Juan Pérez
+            </span>
+        </div>
+        <div class="fila">
+            <span class="etiqueta">Proceso electoral</span>
+            <span class="valor" th:text="${comprobante.voto.eleccion.nombre}">Elección</span>
+        </div>
+    </div>
+
+    <div class="anonimo-msg">
+        🔒 Tu voto es <strong>secreto y anónimo</strong>. El código de verificación
+        solo confirma tu participación, no revela tu elección.
+    </div>
+
+    <form method="post" th:action="@{/votante/logout}">
+        <button type="submit" class="btn">Finalizar y cerrar sesión</button>
+    </form>
+</div>
+</body>
+</html>

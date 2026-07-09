@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Iniciar Sesión — SVES</title>
+    <link rel="stylesheet" th:href="@{/css/theme.css}" />
+    <style>
+        .contenedor { display: flex; min-height: 100vh; }
+
+        .info-panel {
+            width: 50%;
+            background: var(--color-primary);
+            color: #fff;
+            padding: 3rem;
+            display: flex;
+            flex-direction: column;
+        }
+        .info-panel .logo h1 { font-size: 2rem; }
+        .info-panel .logo p { margin-top: 5px; opacity: .85; }
+        .info-panel .hero { margin-top: 4rem; }
+        .info-panel .hero h2 { font-size: 2.4rem; line-height: 1.25; margin-bottom: 1rem; }
+        .info-panel .hero p { max-width: 480px; line-height: 1.6; opacity: .9; }
+        .info-panel .features { margin-top: auto; display: flex; flex-direction: column; gap: 0.9rem; }
+        .info-panel .feature { display: flex; align-items: center; gap: 0.6rem; font-size: 0.95rem; }
+
+        .login-panel {
+            width: 50%;
+            background: var(--color-bg);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 2rem;
+        }
+
+        .login-card {
+            width: 100%;
+            max-width: 420px;
+            padding: 2.25rem;
+            box-shadow: var(--shadow-modal);
+        }
+        .login-card h2 { margin-bottom: 6px; color: var(--color-text); }
+        .login-card .subtitle { color: var(--color-text-muted); margin-bottom: var(--space-3); font-size: 0.9rem; }
+
+        label {
+            display: block;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: #444;
+            margin-bottom: 6px;
+        }
+        input[type="text"] {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border: 1.5px solid var(--color-border);
+            border-radius: var(--radius-sm);
+            font-size: 1rem;
+            margin-bottom: var(--space-3);
+            transition: border-color var(--transition-fast);
+        }
+        input[type="text"]:focus { outline: none; border-color: var(--color-primary); }
+
+        .captcha-box {
+            background: var(--color-bg);
+            border: 1.5px solid var(--color-border);
+            border-radius: var(--radius-sm);
+            padding: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: var(--space-3);
+        }
+        .captcha-box label { display: flex; align-items: center; gap: 12px; margin: 0; cursor: pointer; flex: 1; }
+        .captcha-box input[type="checkbox"] { width: 20px; height: 20px; cursor: pointer; }
+        .captcha-box span { font-size: 0.9rem; color: #444; font-weight: 400; }
+        .captcha-note { margin-left: auto; font-size: 0.68rem; color: #aaa; text-align: right; }
+
+        .ver-resultados {
+            display: block;
+            text-align: center;
+            margin-top: var(--space-2);
+            font-size: 0.88rem;
+            color: var(--color-primary);
+            text-decoration: none;
+            font-weight: 600;
+        }
+        .ver-resultados:hover { text-decoration: underline; }
+
+        @media (max-width: 900px) {
+            .contenedor { flex-direction: column; }
+            .info-panel, .login-panel { width: 100%; }
+            .info-panel { padding: 2rem; }
+            .info-panel .hero { margin-top: 1.5rem; }
+            .info-panel .hero h2 { font-size: 1.7rem; }
+            .info-panel .features { flex-direction: row; flex-wrap: wrap; margin-top: 1.5rem; }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="contenedor">
+        <div class="info-panel">
+            <div class="logo">
+                <h1>SVÉS</h1>
+                <p>Sistema de Votación Electrónica Segura</p>
+            </div>
+
+            <div class="hero">
+                <h2>Tu voto es privado,<br>seguro y verificable</h2>
+                <p>El Sistema de Votación Electrónica Segura garantiza la transparencia y confiabilidad de los procesos electorales en el Perú.</p>
+            </div>
+
+            <div class="features">
+                <div class="feature">✓ Verificación de autenticidad</div>
+                <div class="feature">✓ Encriptación de datos</div>
+                <div class="feature">✓ Código de verificación</div>
+            </div>
+        </div>
+
+        <div class="login-panel">
+            <div class="card login-card">
+                <h2>Iniciar sesión</h2>
+                <p class="subtitle">Ingresa tu DNI para continuar</p>
+
+                <div th:if="${error}" class="alert alert-error" th:text="${error}"></div>
+
+                <form method="post" th:action="@{/votante/login}" id="loginForm">
+                    <label for="dni">Número de DNI</label>
+                    <input type="text" id="dni" name="dni" placeholder="Ej: 12345678"
+                           maxlength="8" inputmode="numeric" pattern="[0-9]{8}" required />
+
+                    <div class="captcha-box">
+                        <label for="captchaCheck">
+                            <input type="checkbox" id="captchaCheck" name="captcha" required />
+                            <span>No soy un robot</span>
+                        </label>
+                        <div class="captcha-note">Verificación de<br>seguridad SVES</div>
+                    </div>
+
+                    <button type="submit" class="btn">Validar identidad</button>
+                    <a class="ver-resultados" th:href="@{/resultados}">Ver resultados publicados</a>
+                </form>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>

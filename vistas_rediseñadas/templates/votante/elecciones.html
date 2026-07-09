@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Procesos Electorales</title>
+    <link rel="stylesheet" th:href="@{/css/theme.css}" />
+    <style>
+        main { max-width: 800px; margin: 2.5rem auto; padding: 0 1rem; }
+        h2 { font-size: 1.2rem; color: var(--color-primary); margin-bottom: var(--space-3); }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: var(--space-3);
+        }
+
+        .eleccion-card {
+            padding: var(--space-3);
+            border-left: 5px solid var(--color-primary);
+            transition: transform var(--transition-base);
+        }
+        .eleccion-card:hover { transform: translateY(-3px); }
+        .eleccion-card h3 { font-size: 1.1rem; color: var(--color-primary); margin-bottom: 0.5rem; }
+        .eleccion-card p { font-size: 0.88rem; color: var(--color-text-muted); margin-bottom: var(--space-2); line-height: 1.5; }
+
+        .badge {
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 20px;
+            font-size: 0.78rem;
+            font-weight: 600;
+            margin-bottom: var(--space-2);
+        }
+        .badge.activa  { background: var(--color-success-bg); color: var(--color-success-text); }
+        .badge.cerrada { background: var(--color-error-bg);   color: var(--color-error-text); }
+
+        .empty { text-align: center; color: #888; padding: 3rem; }
+
+        #alertaVoto {
+            border-left: 4px solid var(--color-error-text);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+    </style>
+</head>
+<body>
+<header class="app-header">
+    <h1>SVÉS</h1>
+    <div class="user-info">
+        <span th:text="'Bienvenido/a, ' + ${votanteLogueado?.nombres}"></span>
+        &nbsp;
+        <a class="logout" th:href="@{/votante/logout}">Cerrar sesión</a>
+    </div>
+</header>
+
+<main>
+    <h2>Procesos Electorales Disponibles</h2>
+
+    <div id="alertaVoto" th:if="${errorVoto}" class="alert alert-error">
+        ⚠️ <span th:text="${errorVoto}"></span>
+    </div>
+
+    <div class="grid">
+        <div th:each="eleccion : ${elecciones}" class="card eleccion-card">
+            <span class="badge activa" th:text="${eleccion.estado}"></span>
+            <h3 th:text="${eleccion.nombre}">Nombre elección</h3>
+            <p th:text="${eleccion.descripcion}">Descripción</p>
+            <a class="btn" th:href="@{/voto/candidatos/{id}(id=${eleccion.idEleccion})}">
+                Participar →
+            </a>
+        </div>
+        <div th:if="${#lists.isEmpty(elecciones)}" class="empty">
+            No hay procesos electorales activos en este momento.
+        </div>
+    </div>
+</main>
+
+<script>
+    // Oculta la alerta de "ya votó" automáticamente tras 4 segundos
+    const alerta = document.getElementById('alertaVoto');
+    if (alerta) {
+        setTimeout(() => {
+            alerta.style.transition = 'opacity 0.5s';
+            alerta.style.opacity = '0';
+            setTimeout(() => alerta.remove(), 500);
+        }, 4000);
+    }
+</script>
+</body>
+</html>

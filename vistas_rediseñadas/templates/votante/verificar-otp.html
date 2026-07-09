@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Verificar OTP</title>
+    <link rel="stylesheet" th:href="@{/css/theme.css}" />
+    <style>
+        body {
+            background: linear-gradient(135deg, var(--color-primary), var(--color-primary-dark));
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+        }
+        .otp-card {
+            padding: 2.5rem;
+            width: 100%;
+            max-width: 420px;
+            box-shadow: var(--shadow-modal);
+            text-align: center;
+        }
+        h1 { font-size: 1.4rem; color: var(--color-primary); margin-bottom: 0.5rem; }
+        .otp-card > p { font-size: 0.9rem; color: var(--color-text-muted); margin-bottom: var(--space-4); }
+
+        .otp-inputs {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin-bottom: var(--space-3);
+        }
+        .otp-inputs input {
+            width: 48px;
+            height: 56px;
+            text-align: center;
+            font-size: 1.4rem;
+            font-weight: 700;
+            border: 2px solid var(--color-border);
+            border-radius: 10px;
+            transition: border-color var(--transition-fast);
+        }
+        .otp-inputs input:focus { outline: none; border-color: var(--color-primary); }
+
+        .reenviar { margin-top: var(--space-2); font-size: 0.85rem; color: #888; }
+        .reenviar a { color: var(--color-primary); text-decoration: none; font-weight: 600; }
+        .reenviar a:hover { text-decoration: underline; }
+    </style>
+</head>
+<body>
+<div class="card otp-card">
+    <h1>📱 Verificación OTP</h1>
+    <p>Ingresa el código de 6 dígitos enviado a tu celular registrado</p>
+
+    <div th:if="${error}"   class="alert alert-error"   th:text="${error}"></div>
+    <div th:if="${mensaje}" class="alert alert-success"  th:text="${mensaje}"></div>
+
+    <form method="post" th:action="@{/votante/verificar-otp}" id="otpForm" onsubmit="return unirCodigo()">
+        <div class="otp-inputs" role="group" aria-label="Código OTP de 6 dígitos">
+            <input type="text" inputmode="numeric" pattern="[0-9]" maxlength="1" class="otp-digit"
+                   id="d1" aria-label="Dígito 1"/>
+            <input type="text" inputmode="numeric" pattern="[0-9]" maxlength="1" class="otp-digit"
+                   id="d2" aria-label="Dígito 2"/>
+            <input type="text" inputmode="numeric" pattern="[0-9]" maxlength="1" class="otp-digit"
+                   id="d3" aria-label="Dígito 3"/>
+            <input type="text" inputmode="numeric" pattern="[0-9]" maxlength="1" class="otp-digit"
+                   id="d4" aria-label="Dígito 4"/>
+            <input type="text" inputmode="numeric" pattern="[0-9]" maxlength="1" class="otp-digit"
+                   id="d5" aria-label="Dígito 5"/>
+            <input type="text" inputmode="numeric" pattern="[0-9]" maxlength="1" class="otp-digit"
+                   id="d6" aria-label="Dígito 6"/>
+        </div>
+        <input type="hidden" name="codigo" id="codigoFinal"/>
+        <button type="submit" class="btn">Verificar</button>
+    </form>
+
+    <p class="reenviar">¿No recibiste el código? <a th:href="@{/votante/login}">Volver a intentar</a></p>
+</div>
+<script>
+    const digits = document.querySelectorAll('.otp-digit');
+
+    digits.forEach((input, i) => {
+        input.addEventListener('input', () => {
+            input.value = input.value.replace(/[^0-9]/g, ''); // solo dígitos
+            if (input.value && i < digits.length - 1) digits[i + 1].focus();
+        });
+        input.addEventListener('keydown', (e) => {
+            if (e.key === 'Backspace' && !input.value && i > 0) digits[i - 1].focus();
+        });
+        input.addEventListener('paste', (e) => {
+            const pasted = (e.clipboardData || window.clipboardData).getData('text').trim();
+            if (/^\d{6}$/.test(pasted)) {
+                e.preventDefault();
+                pasted.split('').forEach((d, idx) => { if (digits[idx]) digits[idx].value = d; });
+                digits[5].focus();
+            }
+        });
+    });
+
+    function unirCodigo() {
+        let codigo = '';
+        digits.forEach(d => codigo += d.value);
+        document.getElementById('codigoFinal').value = codigo;
+        return codigo.length === 6;
+    }
+</script>
+</body>
+</html>

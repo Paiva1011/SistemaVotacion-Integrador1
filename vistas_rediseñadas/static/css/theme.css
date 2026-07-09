@@ -1,0 +1,110 @@
+/* ============================================================
+   SVES · Design tokens compartidos
+   Importar en cada vista con:
+   <link rel="stylesheet" th:href="@{/css/theme.css}" />
+   ============================================================ */
+
+:root {
+  --color-primary: #1a3c6e;
+  --color-primary-dark: #0d2240;
+  --color-primary-light: #eef2fb;
+  --color-bg: #f0f4f8;
+  --color-surface: #ffffff;
+  --color-text: #1f2937;
+  --color-text-muted: #6b7280;
+  --color-border: #e2e5e9;
+  --color-success-bg: #e8f5e9;
+  --color-success-text: #2e7d32;
+  --color-error-bg: #fde8e8;
+  --color-error-text: #c0392b;
+
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+
+  --space-1: 0.5rem;
+  --space-2: 1rem;
+  --space-3: 1.5rem;
+  --space-4: 2rem;
+
+  --shadow-card: 0 2px 10px rgba(0, 0, 0, 0.07);
+  --shadow-modal: 0 20px 60px rgba(0, 0, 0, 0.3);
+
+  --transition-fast: 0.15s ease;
+  --transition-base: 0.2s ease;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'Segoe UI', system-ui, sans-serif;
+  color: var(--color-text);
+  background: var(--color-bg);
+}
+
+/* Header reutilizado en todas las pantallas internas */
+.app-header {
+  background: var(--color-primary);
+  color: #fff;
+  padding: 1.2rem 2rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.app-header h1 { font-size: 1.3rem; }
+.app-header .user-info { font-size: 0.85rem; opacity: 0.85; }
+.app-header .logout {
+  color: #fff;
+  text-decoration: none;
+  font-size: 0.85rem;
+  background: rgba(255, 255, 255, 0.18);
+  padding: 6px 14px;
+  border-radius: 20px;
+  transition: background var(--transition-fast);
+}
+.app-header .logout:hover { background: rgba(255, 255, 255, 0.3); }
+
+/* Tarjetas base */
+.card {
+  background: var(--color-surface);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-card);
+}
+
+.btn {
+  display: inline-block;
+  width: 100%;
+  padding: 0.85rem;
+  background: var(--color-primary);
+  color: #fff;
+  border: none;
+  border-radius: var(--radius-sm);
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  text-align: center;
+  transition: background var(--transition-base);
+}
+.btn:hover { background: var(--color-primary-dark); }
+.btn:disabled { background: #cbd2d9; cursor: not-allowed; }
+.btn:focus-visible,
+a:focus-visible,
+input:focus-visible {
+  outline: 3px solid #5b8def;
+  outline-offset: 2px;
+}
+
+.alert {
+  padding: 0.85rem 1.1rem;
+  border-radius: var(--radius-sm);
+  font-size: 0.9rem;
+  margin-bottom: var(--space-2);
+}
+.alert-error   { background: var(--color-error-bg);   color: var(--color-error-text); }
+.alert-success { background: var(--color-success-bg); color: var(--color-success-text); }
+
+/* Utilidad responsiva: apila columnas debajo de 900px */
+@media (max-width: 900px) {
+  .stack-on-mobile { flex-direction: column !important; }
+  .stack-on-mobile > * { width: 100% !important; }
+}
