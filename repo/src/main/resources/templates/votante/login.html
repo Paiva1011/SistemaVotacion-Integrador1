@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Iniciar Sesión — Sistema de Votación</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #1a3c6e, #0d2240);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .card {
+            background: white;
+            border-radius: 16px;
+            padding: 2.5rem;
+            width: 100%;
+            max-width: 420px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        .logo {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .logo h1 {
+            font-size: 1.5rem;
+            color: #1a3c6e;
+            font-weight: 700;
+        }
+
+        .logo p {
+            font-size: 0.85rem;
+            color: #888;
+            margin-top: 4px;
+        }
+
+        label {
+            display: block;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: #444;
+            margin-bottom: 6px;
+        }
+
+        input[type="text"] {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border: 1.5px solid #ddd;
+            border-radius: 8px;
+            font-size: 1rem;
+            margin-bottom: 1.2rem;
+            transition: border-color 0.2s;
+        }
+
+        input[type="text"]:focus {
+            outline: none;
+            border-color: #1a3c6e;
+        }
+
+        .captcha-box {
+            background: #f5f5f5;
+            border: 1.5px solid #ddd;
+            border-radius: 8px;
+            padding: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 1.2rem;
+            cursor: pointer;
+        }
+
+        .captcha-box input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+        }
+
+        .captcha-box span {
+            font-size: 0.9rem;
+            color: #444;
+        }
+
+        .captcha-logo {
+            margin-left: auto;
+            font-size: 0.7rem;
+            color: #aaa;
+            text-align: center;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 0.85rem;
+            background: #1a3c6e;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .btn:hover {
+            background: #0d2240;
+        }
+
+        .error {
+            background: #fde8e8;
+            color: #c0392b;
+            padding: 0.75rem 1rem;
+            border-radius: 8px;
+            font-size: 0.88rem;
+            margin-bottom: 1rem;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="card">
+        <div class="logo">
+            <h1>🗳️ Sistema de Votación</h1>
+            <p>Ingresa tu DNI para continuar</p>
+        </div>
+
+        <div th:if="${error}" class="error" th:text="${error}"></div>
+
+        <form method="post" th:action="@{/votante/login}" id="loginForm">
+            <label for="dni">Número de DNI</label>
+            <input type="text" id="dni" name="dni" placeholder="Ej: 12345678" maxlength="8" required />
+
+            <!-- Captcha simulado -->
+            <div class="captcha-box" onclick="toggleCaptcha()">
+                <input type="checkbox" id="captchaCheck" name="captcha" required />
+                <span>No soy un robot</span>
+                <div class="captcha-logo">reCAPTCHA<br>Privacidad · Términos</div>
+            </div>
+
+            <button type="submit" class="btn">Iniciar Sesión</button>
+        </form>
+    </div>
+    <script>
+        function toggleCaptcha() {
+            const cb = document.getElementById('captchaCheck');
+            cb.checked = !cb.checked;
+        }
+    </script>
+</body>
+
+</html>
