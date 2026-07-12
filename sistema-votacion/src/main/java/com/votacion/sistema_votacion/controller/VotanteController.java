@@ -69,13 +69,18 @@ public class VotanteController {
         System.out.println("OTP para " + dni + ": " + codigo);
 
         session.setAttribute("dniVotante", dni);
+        session.setAttribute("celularVotante", votante.getCelular());
+
+        model.addAttribute("celular", votante.getCelular());
         model.addAttribute("mensaje", "Se envió el código OTP a tu celular");
         return "votante/verificar-otp";
     }
 
     // Mostrar página verificar OTP
     @GetMapping("/verificar-otp")
-    public String mostrarVerificarOtp() {
+    public String mostrarVerificarOtp(HttpSession session, Model model) {
+        String celular = (String) session.getAttribute("celularVotante");
+        model.addAttribute("celular", celular);
         return "votante/verificar-otp";
     }
 

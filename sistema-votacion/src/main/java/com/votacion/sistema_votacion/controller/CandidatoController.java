@@ -66,6 +66,7 @@ public class CandidatoController {
             @RequestParam long idPartido,
             @RequestParam long idEleccion,
             @RequestParam(required = false) MultipartFile propuestasPdf,
+            @RequestParam(required = false) MultipartFile foto,
             HttpSession session) throws IOException {
 
         if (session.getAttribute("adminLogueado") == null)
@@ -83,7 +84,17 @@ public class CandidatoController {
             Files.copy(propuestasPdf.getInputStream(), destino, StandardCopyOption.REPLACE_EXISTING);
         }
 
+        //Guardar foto de candidato
+        String nombreFoto = null;
+        if (foto != null && !foto.isEmpty()) {
+            nombreFoto = "foto_" + System.currentTimeMillis() + "_" + foto.getOriginalFilename();
+            Path destino = Paths.get("uploads/" + nombreFoto);
+            Files.createDirectories(destino.getParent());
+            Files.copy(foto.getInputStream(), destino, StandardCopyOption.REPLACE_EXISTING);
+        }
+
         Candidato candidato = new Candidato(nombres, apellidos, nombreArchivo, partido, eleccion);
+        candidato.setFoto(nombreFoto);
         candidatoRepository.save(candidato);
         return "redirect:/candidatos/admin";
     }
@@ -102,6 +113,27 @@ public class CandidatoController {
         return ResponseEntity.ok()
                 .header("Content-Type", "application/pdf")
                 .body(resource);
+    }
+
+    //Servir foto 
+    @GetMapping("/fotos/{filename}")
+    @ResponseBody
+    public ResponseEntity<Resource> verFoto(@PathVariable String filename) throws Exception {
+        Path path     = Paths.get("uploads/" + filename);
+        Resource resource = new UrlResource(path.toUri());
+
+        if (!resource.exists()) {
+            return ResponseEntity.notFound().build();
+        }
+
+        // Detecta el tipo de imagen automáticamente
+        String contentType = "image/jpeg";
+        if (filename.toLowerCase().endsWith(".png"))  contentType = "image/png";
+        if (filename.toLowerCase().endsWith(".webp")) contentType = "image/webp";
+
+        return ResponseEntity.ok()
+            .header("Content-Type", contentType)
+            .body(resource);
     }
 
     // Eliminar candidato
