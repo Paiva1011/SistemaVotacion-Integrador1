@@ -143,6 +143,15 @@
             text-decoration: none;
             font-weight: 600;
         }
+
+        .modalError{
+            position: fixed; inset: 0;
+            background: rgba(0,0,0,0.5); 
+            z-index: 999;
+            display: flex; 
+            align-items: center; 
+            justify-content: center;
+        }
     </style>
 </head>
 
@@ -213,7 +222,8 @@
                         <td th:text="${c.eleccion.nombre}">Elección</td>
                         <td>
                             <a class="btn-pdf" th:if="${c.propuestasPdf != null}"
-                                th:href="@{'/candidatos/archivos/' + ${c.propuestasPdf}}" target="_blank">📄 Ver Propuesta</a>
+                                th:href="@{'/candidatos/archivos/' + ${c.propuestasPdf}}" target="_blank">📄 Ver
+                                Propuesta</a>
                             <span th:unless="${c.propuestasPdf != null}" style="color:#aaa">Sin Propuesta</span>
                         </td>
                         <td>
@@ -230,6 +240,28 @@
             </table>
         </div>
     </main>
+
+    <!-- Modal error eliminar candidato -->
+    <div class="modalError" id="modalErrorCandidato" th:if="${errorEliminar}">
+        <div style="
+        background: white; border-radius: 16px; padding: 2rem;
+        max-width: 420px; width: 90%; text-align: center;
+        box-shadow: 0 20px 60px rgba(0,0,0,0.3);">
+            <div style="font-size: 2.5rem; margin-bottom: 1rem;">⚠️</div>
+            <h2 style="color: #c0392b; font-size: 1.1rem; margin-bottom: 0.8rem;">
+                No se puede eliminar
+            </h2>
+            <p style="color: #555; font-size: 0.9rem; margin-bottom: 1.5rem; line-height: 1.6;"
+                th:text="${errorEliminar}">
+            </p>
+            <button onclick="document.getElementById('modalErrorCandidato').remove()" style="
+            padding: 0.75rem 2rem; background: #1a3c6e;
+            color: white; border: none; border-radius: 8px;
+            font-size: 0.95rem; font-weight: 600; cursor: pointer;">
+                Entendido
+            </button>
+        </div>
+    </div>
 </body>
 
 </html>

@@ -3,6 +3,7 @@ package com.votacion.sistema_votacion.controller;
 import com.votacion.sistema_votacion.model.Votante;
 import com.votacion.sistema_votacion.model.Otp;
 import com.votacion.sistema_votacion.repository.VotanteRepository;
+import com.votacion.sistema_votacion.service.RecaptchaService;
 import com.votacion.sistema_votacion.repository.OtpRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -10,6 +11,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import jakarta.servlet.http.HttpSession;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Controller
 @RequestMapping("/votante")
@@ -21,6 +23,9 @@ public class VotanteController {
     @Autowired
     private OtpRepository otpRepository;
 
+    @Autowired
+    private RecaptchaService recaptchaService;
+
     // Mostrar login votante (ingresa DNI)
     @GetMapping("/login")
     public String mostrarLogin() {
@@ -29,13 +34,27 @@ public class VotanteController {
 
     // Procesar DNI y generar OTP
     @PostMapping("/login")
-    public String procesarDni(@RequestParam String dni,
+    public String procesarDni(@RequestParam String dni, @RequestParam(name = "g-recaptcha-response", required = false) String recaptchaToken,
             HttpSession session, Model model) {
+
+        // Verificar reCAPTCHA
+        if (recaptchaToken == null || !recaptchaService.verificar(recaptchaToken)) {
+            model.addAttribute("error", "Por favor completa el captcha");
+            return "votante/login";
+        }
+
         Votante votante = votanteRepository.findByDni(dni).orElse(null);
 
         if (votante == null) {
             model.addAttribute("error", "DNI no encontrado");
             return "votante/login";
+        }
+
+        // Invalida todos los OTPs anteriores sin usar
+        List<Otp> otpsAnteriores = otpRepository.findAllByVotanteAndUsadoFalse(votante);
+        for (Otp otpAnterior : otpsAnteriores) {
+            otpAnterior.setUsado(true);
+            otpRepository.save(otpAnterior);
         }
 
         // Generar OTP de 6 dígitos

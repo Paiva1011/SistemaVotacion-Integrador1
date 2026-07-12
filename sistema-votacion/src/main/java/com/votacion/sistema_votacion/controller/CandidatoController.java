@@ -5,6 +5,7 @@ import com.votacion.sistema_votacion.model.Eleccion;
 import com.votacion.sistema_votacion.model.PartidoPolitico;
 import com.votacion.sistema_votacion.repository.CandidatoRepository;
 import com.votacion.sistema_votacion.repository.EleccionRepository;
+import com.votacion.sistema_votacion.repository.VotoRepository;
 import com.votacion.sistema_votacion.repository.PartidoPoliticoRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
@@ -14,6 +15,8 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+
 import jakarta.servlet.http.HttpSession;
 
 import java.io.IOException;
@@ -32,6 +35,9 @@ public class CandidatoController {
 
     @Autowired
     private PartidoPoliticoRepository partidoRepository;
+
+    @Autowired
+    private VotoRepository votoRepository;
 
     // ── Vista pública de candidatos
     @GetMapping
@@ -100,9 +106,26 @@ public class CandidatoController {
 
     // Eliminar candidato
     @GetMapping("/eliminar/{id}")
-    public String eliminar(@PathVariable long id, HttpSession session) {
+    public String eliminar(@PathVariable long id, HttpSession session, RedirectAttributes redirectAttributes) {
         if (session.getAttribute("adminLogueado") == null)
             return "redirect:/admin/login";
+
+        Candidato candidato = candidatoRepository.findById(id).orElse(null);
+        if (candidato == null) return "redirect:/candidatos/admin";
+
+    // Verificar si tiene votos asociados
+    long totalVotos = votoRepository.countByCandidatoAndEleccion(
+        candidato, candidato.getEleccion()
+    );
+
+    if (totalVotos > 0) {
+        redirectAttributes.addFlashAttribute("errorEliminar",
+            "No se puede eliminar a " + candidato.getNombres() + " " 
+            + candidato.getApellidos() + " porque tiene " + totalVotos 
+            + " voto(s) registrado(s). Primero elimina el proceso electoral: "
+            + candidato.getEleccion().getNombre());
+        return "redirect:/candidatos/admin";
+    }
 
         candidatoRepository.deleteById(id);
         return "redirect:/candidatos/admin";
