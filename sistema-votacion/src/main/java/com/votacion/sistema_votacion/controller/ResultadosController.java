@@ -10,9 +10,13 @@ import jakarta.servlet.http.HttpSession;
 
 import java.util.*;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 @Controller
 @RequestMapping("/resultados")
 public class ResultadosController {
+    private static final Logger log = LoggerFactory.getLogger(ResultadosController.class);
 
     @Autowired
     private EleccionRepository eleccionRepository;
@@ -28,6 +32,7 @@ public class ResultadosController {
             return "redirect:/admin/login";
 
         model.addAttribute("elecciones", eleccionRepository.findAll());
+        log.info("Admin consultó resultados");
         return "admin/resultados";
     }
 
@@ -37,6 +42,7 @@ public class ResultadosController {
         if (session.getAttribute("adminLogueado") == null)
             return "redirect:/admin/login";
 
+        log.info("Admin consultó resultados de elección ID: {}", idEleccion);
         return cargarResultados(idEleccion, model, "admin/resultados-detalle");
     }
 
@@ -55,6 +61,7 @@ public class ResultadosController {
         if (eleccion == null || !eleccion.isPublicada())
             return "redirect:/resultados";
 
+        log.info("Resultados públicos consultados - Elección ID: {}", idEleccion);
         return cargarResultados(idEleccion, model, "resultados-detalle");
     }
 

@@ -8,9 +8,13 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import jakarta.servlet.http.HttpSession;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 @Controller
 @RequestMapping("/votantes")
 public class VotanteAdminController {
+    private static final Logger log = LoggerFactory.getLogger(VotanteAdminController.class);
 
     @Autowired
     private VotanteRepository votanteRepository;
@@ -37,10 +41,12 @@ public class VotanteAdminController {
         if (votanteRepository.findByDni(dni).isPresent()) {
             model.addAttribute("votantes", votanteRepository.findAll());
             model.addAttribute("error", "Ya existe un votante con ese DNI");
+            log.warn("Intento de registrar DNI duplicado: {}", dni);
             return "admin/votantes";
         }
 
         votanteRepository.save(new Votante(dni, nombres, apellidos, celular));
+        log.info("Votante registrado - DNI: {}", dni);
         return "redirect:/votantes";
     }
 

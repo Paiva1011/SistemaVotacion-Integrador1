@@ -12,9 +12,14 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 @Controller
 @RequestMapping("/voto")
 public class VotoController {
+    private static final Logger log = LoggerFactory.getLogger(VotoController.class);
+
 
     @Autowired private VotoRepository votoRepository;
     @Autowired private CandidatoRepository candidatoRepository;
@@ -80,6 +85,7 @@ public String emitirVoto(@RequestParam long idCandidato,
         .stream()
         .filter(c -> c.getEleccion().getIdEleccion().equals(idEleccion))
         .collect(java.util.stream.Collectors.toList());
+        log.warn("Intento de doble voto - Votante: {} en Eleccion: {}", votante.getDni(), idEleccion);
         model.addAttribute("error", "Ya emitiste tu voto en esta elección");
         model.addAttribute("eleccion", eleccion);
         model.addAttribute("candidatos", candidatos);
@@ -97,11 +103,14 @@ public String emitirVoto(@RequestParam long idCandidato,
 
     Participacion participacion = new Participacion(votante, eleccion, LocalDateTime.now());
     participacionRepository.save(participacion);
+    log.info("Voto emitido - Eleccion: {} Candidato: {}", idEleccion, idCandidato);
 
     String codigoVerificacion = UUID.randomUUID().toString().substring(0, 8).toUpperCase();
     Comprobante comprobante = new Comprobante(voto, codigoVerificacion,
             LocalDateTime.now(), "EMITIDO");
     comprobanteRepository.save(comprobante);
+
+    log.info("Comprobante generado: {}", codigoVerificacion);
 
     session.setAttribute("ultimoComprobanteId", comprobante.getIdComprobante());
     session.setAttribute("participacionVotante", votante);

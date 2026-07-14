@@ -8,9 +8,13 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import jakarta.servlet.http.HttpSession;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 @Controller
 @RequestMapping("/partidos")
 public class PartidoPoliticoController {
+    private static final Logger log = LoggerFactory.getLogger(PartidoPoliticoController.class);
 
     @Autowired
     private PartidoPoliticoRepository partidoRepository;
@@ -32,6 +36,7 @@ public class PartidoPoliticoController {
             return "redirect:/admin/login";
 
         partidoRepository.save(new PartidoPolitico(nombre, simbolo));
+        log.info("Partido político registrado: {}", nombre);
         return "redirect:/partidos";
     }
 
@@ -41,6 +46,7 @@ public class PartidoPoliticoController {
             return "redirect:/admin/login";
 
         partidoRepository.deleteById(id);
+        log.info("Partido político eliminado - ID: {}", id);
         return "redirect:/partidos";
     }
 }

@@ -11,9 +11,14 @@ import java.util.List;
 import java.time.LocalDateTime;
 import java.util.Map;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 @Controller
 @RequestMapping("/elecciones")
 public class EleccionController {
+
+    private static final Logger log = LoggerFactory.getLogger(EleccionController.class);
 
     @Autowired
     private EleccionRepository eleccionRepository;
@@ -53,6 +58,7 @@ public class EleccionController {
                 LocalDateTime.parse(fechaFin),
                 estado);
         eleccionRepository.save(eleccion);
+        log.info("Elección creada: {}", nombre);
         return "redirect:/elecciones";
     }
 
@@ -68,6 +74,7 @@ public class EleccionController {
             e.setEstado(estado);
             eleccionRepository.save(e);
         });
+        log.info("Estado de elección {} cambiado a: {}", id, estado);
         return "redirect:/elecciones";
     }
 
@@ -107,6 +114,7 @@ public class EleccionController {
     candidatoRepository.deleteAll(candidatos);
     //5. Eliminar la eleccion
         eleccionRepository.deleteById(id);
+        log.info("Elección eliminada - ID: {}", id);
         return "redirect:/elecciones";
     }
 
@@ -129,6 +137,7 @@ public class EleccionController {
             e.setPublicada(true);
             eleccionRepository.save(e);
         });
+        log.info("Resultados publicados para elección ID: {}", id);
         return "redirect:/elecciones";
     }
 }

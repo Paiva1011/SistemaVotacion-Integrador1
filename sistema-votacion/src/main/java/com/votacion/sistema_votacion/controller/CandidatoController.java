@@ -23,9 +23,14 @@ import java.io.IOException;
 import java.nio.file.*;
 import java.util.List;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 @Controller
 @RequestMapping("/candidatos")
 public class CandidatoController {
+
+    private static final Logger log = LoggerFactory.getLogger(CandidatoController.class);
 
     @Autowired
     private CandidatoRepository candidatoRepository;
@@ -94,6 +99,7 @@ public class CandidatoController {
         }
 
         Candidato candidato = new Candidato(nombres, apellidos, nombreArchivo, partido, eleccion);
+        log.info("Candidato registrado: {} {}", nombres, apellidos);
         candidato.setFoto(nombreFoto);
         candidatoRepository.save(candidato);
         return "redirect:/candidatos/admin";
@@ -156,10 +162,12 @@ public class CandidatoController {
             + candidato.getApellidos() + " porque tiene " + totalVotos 
             + " voto(s) registrado(s). Primero elimina el proceso electoral: "
             + candidato.getEleccion().getNombre());
+            log.warn("Intento de eliminar candidato con votos - ID: {}", id);
         return "redirect:/candidatos/admin";
     }
 
         candidatoRepository.deleteById(id);
+        log.info("Candidato eliminado - ID: {}", id);
         return "redirect:/candidatos/admin";
     }
 }

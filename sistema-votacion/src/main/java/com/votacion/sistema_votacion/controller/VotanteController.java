@@ -13,9 +13,13 @@ import jakarta.servlet.http.HttpSession;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 @Controller
 @RequestMapping("/votante")
 public class VotanteController {
+    private static final Logger log = LoggerFactory.getLogger(VotanteController.class);
 
     @Autowired
     private VotanteRepository votanteRepository;
@@ -66,7 +70,8 @@ public class VotanteController {
 
         // En producción aquí se enviaría el OTP por SMS
         // Por ahora lo mostramos en consola
-        System.out.println("OTP para " + dni + ": " + codigo);
+        log.info("OTP generado para DNI {}: {}", dni, codigo);
+        log.warn("Intento de login con DNI no encontrado: {}", dni);
 
         session.setAttribute("dniVotante", dni);
         session.setAttribute("celularVotante", votante.getCelular());
@@ -101,11 +106,13 @@ public class VotanteController {
 
         if (otp == null || !otp.getCodigo().equals(codigo)) {
             model.addAttribute("error", "Código OTP incorrecto");
+            log.warn("OTP incorrecto para votante: {}", dni);
             return "votante/verificar-otp";
         }
 
         if (otp.getFechaExpiracion().isBefore(LocalDateTime.now())) {
             model.addAttribute("error", "El código OTP ha expirado");
+            log.warn("OTP expirado para votante: {}", dni);
             return "votante/verificar-otp";
         }
 
@@ -114,6 +121,7 @@ public class VotanteController {
         otpRepository.save(otp);
 
         session.setAttribute("votanteLogueado", votante);
+        log.info("Votante autenticado correctamente: {}", dni);
         return "redirect:/voto/elecciones";
     }
 
