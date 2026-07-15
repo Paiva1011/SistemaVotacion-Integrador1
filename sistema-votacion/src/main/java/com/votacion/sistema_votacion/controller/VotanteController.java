@@ -3,13 +3,16 @@ package com.votacion.sistema_votacion.controller;
 import com.votacion.sistema_votacion.model.Votante;
 import com.votacion.sistema_votacion.model.Otp;
 import com.votacion.sistema_votacion.repository.VotanteRepository;
+import com.votacion.sistema_votacion.service.RecaptchaService;
 import com.votacion.sistema_votacion.repository.OtpRepository;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import jakarta.servlet.http.HttpSession;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Controller
 @RequestMapping("/votante")
@@ -21,15 +24,25 @@ public class VotanteController {
     @Autowired
     private OtpRepository otpRepository;
 
+    @Autowired
+    private RecaptchaService recaptchaService;
+
+    // Mostrar login votante (ingresa DNI)
     @GetMapping("/login")
     public String mostrarLogin() {
         return "votante/login";
     }
 
+    // Procesar DNI y generar OTP
     @PostMapping("/login")
-    public String procesarDni(@RequestParam String dni,
-                              HttpSession session,
-                              Model model) {
+    public String procesarDni(@RequestParam String dni, @RequestParam(name = "g-recaptcha-response", required = false) String recaptchaToken,
+            HttpSession session, Model model) {
+
+        // Verificar reCAPTCHA
+        if (recaptchaToken == null || !recaptchaService.verificar(recaptchaToken)) {
+            model.addAttribute("error", "Por favor completa el captcha");
+            return "votante/login";
+        }
 
         Votante votante = votanteRepository.findByDni(dni).orElse(null);
 
@@ -38,36 +51,48 @@ public class VotanteController {
             return "votante/login";
         }
 
-        String codigo = String.valueOf((int)(Math.random()*900000)+100000);
+        // Invalida todos los OTPs anteriores sin usar
+        List<Otp> otpsAnteriores = otpRepository.findAllByVotanteAndUsadoFalse(votante);
+        for (Otp otpAnterior : otpsAnteriores) {
+            otpAnterior.setUsado(true);
+            otpRepository.save(otpAnterior);
+        }
 
-        Otp otp = new Otp(
-                votante,
-                codigo,
+        // Generar OTP de 6 dígitos
+        String codigo = String.valueOf((int) (Math.random() * 900000) + 100000);
+        Otp otp = new Otp(votante, codigo,
                 LocalDateTime.now(),
-                LocalDateTime.now().plusMinutes(5)
-        );
-
+                LocalDateTime.now().plusMinutes(5));
         otpRepository.save(otp);
 
+        // En producción aquí se enviaría el OTP por SMS
+        // Por ahora lo mostramos en consola
         System.out.println("OTP para " + dni + ": " + codigo);
 
         session.setAttribute("dniVotante", dni);
+        session.setAttribute("celularVotante", votante.getCelular());
 
-        model.addAttribute("mensaje",
-                "Se envió el código OTP a tu celular");
-
+        model.addAttribute("celular", votante.getCelular());
+        model.addAttribute("mensaje", "Se envió el código OTP a tu celular");
         return "votante/verificar-otp";
     }
 
+    // Mostrar página verificar OTP
     @GetMapping("/verificar-otp")
-    public String mostrarVerificarOtp() {
+    public String mostrarVerificarOtp(HttpSession session, Model model) {
+        String celular = (String) session.getAttribute("celularVotante");
+        model.addAttribute("celular", celular);
         return "votante/verificar-otp";
     }
 
+    // Procesar OTP ingresado
     @PostMapping("/verificar-otp")
     public String procesarOtp(@RequestParam String codigo,
-                              HttpSession session,
-                              Model model) {
+            HttpSession session, Model model) {
+        if (!StringUtils.isNumeric(codigo)) {
+            model.addAttribute("error", "El código OTP solo debe contener números");
+            return "votante/verificar-otp";
+        }
 
         String dni = (String) session.getAttribute("dniVotante");
 
@@ -75,42 +100,33 @@ public class VotanteController {
             return "redirect:/votante/login";
 
         Votante votante = votanteRepository.findByDni(dni).orElse(null);
-
         if (votante == null)
             return "redirect:/votante/login";
 
         Otp otp = otpRepository.findByVotanteAndUsadoFalse(votante).orElse(null);
 
         if (otp == null || !otp.getCodigo().equals(codigo)) {
-
-            model.addAttribute("error",
-                    "Código OTP incorrecto");
-
+            model.addAttribute("error", "Código OTP incorrecto");
             return "votante/verificar-otp";
         }
 
         if (otp.getFechaExpiracion().isBefore(LocalDateTime.now())) {
-
-            model.addAttribute("error",
-                    "El código OTP ha expirado");
-
+            model.addAttribute("error", "El código OTP ha expirado");
             return "votante/verificar-otp";
         }
 
+        // Marcar OTP como usado
         otp.setUsado(true);
-
         otpRepository.save(otp);
 
         session.setAttribute("votanteLogueado", votante);
-
         return "redirect:/voto/elecciones";
     }
 
+    // Cerrar sesión votante
     @GetMapping("/logout")
     public String logout(HttpSession session) {
-
         session.invalidate();
-
         return "redirect:/votante/login";
     }
 }

@@ -2,6 +2,7 @@ package com.votacion.sistema_votacion.controller;
 
 import com.votacion.sistema_votacion.model.Votante;
 import com.votacion.sistema_votacion.repository.VotanteRepository;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -40,7 +41,11 @@ public class VotanteAdminController {
             return "admin/votantes";
         }
 
-        votanteRepository.save(new Votante(dni, nombres, apellidos, celular));
+        // Capitaliza la primera letra de cada palabra
+        String nombresFormateados = StringUtils.capitalize(nombres.toLowerCase());
+        String apellidosFormateados = StringUtils.capitalize(apellidos.toLowerCase());
+
+        votanteRepository.save(new Votante(dni, nombresFormateados, apellidosFormateados, celular));
         return "redirect:/votantes";
     }
 
