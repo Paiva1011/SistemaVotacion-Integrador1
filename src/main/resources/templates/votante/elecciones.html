@@ -130,27 +130,28 @@
         }
 
         @media (max-width: 480px) {
-            .grid { 
-                grid-template-columns: 1fr; 
+            .grid {
+                grid-template-columns: 1fr;
             }
-            header { 
-                flex-direction: column; align-items: flex-start; 
+
+            header {
+                flex-direction: column;
+                align-items: flex-start;
             }
+        }
+
+        .modalDobleVoto{
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.5); 
+            z-index: 999;
+            display: flex; 
+            align-items: center; 
+            justify-content: center;
+            padding: 1rem;
         }
     </style>
 </head>
-<script>
-    // oculta el error despues de 4 segundos
-    const msgError = document.querySelector('[th\\:if]');
-    const alerta = document.getElementById('alertaVoto');
-    if (alerta) {
-        setTimeout(() => {
-            alerta.style.transition = 'opacity 0.5s';
-            alerta.style.opacity = '0';
-            setTimeout(() => alerta.remove(), 500);
-        }, 4000);
-    }
-</script>
 
 <body>
     <header>
@@ -164,21 +165,6 @@
 
     <main>
         <h2>Procesos Electorales Disponibles</h2>
-
-        <!-- Mensaje de ya votó -->
-        <div id="alertaVoto" th:if="${errorVoto}" style="
-    background: #fde8e8;
-    color: #c0392b;
-    padding: 1rem 1.2rem;
-    border-radius: 10px;
-    margin-bottom: 1.5rem;
-    font-size: 0.95rem;
-    border-left: 4px solid #c0392b;
-    display: flex;
-    align-items: center;
-    gap: 10px;">
-            ⚠️ <span th:text="${errorVoto}"></span>
-        </div>
 
         <div class="grid">
             <div th:each="eleccion : ${elecciones}" class="card">
@@ -194,6 +180,27 @@
             </div>
         </div>
     </main>
+
+    <!-- Mensaje de doble voto -->
+    <div class="modalDobleVoto" id="modalDobleVoto" th:if="${errorVoto}">
+        <div style="
+        background: white; border-radius: 16px; padding: 2rem;
+        max-width: 400px; width: 100%; text-align: center;
+        box-shadow: 0 20px 60px rgba(0,0,0,0.3);">
+            <div style="font-size: 2.5rem; margin-bottom: 1rem;">🚫</div>
+            <h2 style="color: #c0392b; font-size: 1.1rem; margin-bottom: 0.8rem;">
+                Voto ya registrado
+            </h2>
+            <p style="color: #555; font-size: 0.9rem; margin-bottom: 1.5rem; line-height: 1.6;" th:text="${errorVoto}">
+            </p>
+            <button onclick="document.getElementById('modalDobleVoto').remove()" style="
+            padding: 0.75rem 2rem; background: #1a3c6e;
+            color: white; border: none; border-radius: 8px;
+            font-size: 0.95rem; font-weight: 600; cursor: pointer;">
+                Entendido
+            </button>
+        </div>
+    </div>
 </body>
 
 </html>

@@ -51,6 +51,7 @@ public class VotanteController {
 
         if (votante == null) {
             model.addAttribute("error", "DNI no encontrado");
+            log.warn("Intento de login con DNI no encontrado: {}", dni);
             return "votante/login";
         }
 
@@ -71,7 +72,7 @@ public class VotanteController {
         // En producción aquí se enviaría el OTP por SMS
         // Por ahora lo mostramos en consola
         log.info("OTP generado para DNI {}: {}", dni, codigo);
-        log.warn("Intento de login con DNI no encontrado: {}", dni);
+
 
         session.setAttribute("dniVotante", dni);
         session.setAttribute("celularVotante", votante.getCelular());

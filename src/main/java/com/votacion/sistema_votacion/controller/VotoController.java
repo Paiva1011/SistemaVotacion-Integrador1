@@ -6,6 +6,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+
 import jakarta.servlet.http.HttpSession;
 
 import java.time.LocalDateTime;
@@ -44,7 +46,7 @@ public class VotoController {
     // ── Candidatos por elección ────────────────────────────────
     @GetMapping("/candidatos/{idEleccion}")
     public String mostrarCandidatos(@PathVariable long idEleccion,
-            HttpSession session, Model model) {
+            HttpSession session, Model model, RedirectAttributes redirectAttributes) {
         if (session.getAttribute("votanteLogueado") == null)
             return "redirect:/votante/login";
 
@@ -53,10 +55,8 @@ public class VotoController {
 
         // Verifica si ya votó en esta elección
     if (participacionRepository.findByVotanteAndEleccion(votante, eleccion).isPresent()) {
-        model.addAttribute("elecciones", eleccionRepository.findByEstado("ACTIVA"));
-        model.addAttribute("votanteLogueado", votante);
-        model.addAttribute("errorVoto", "Ya emitiste tu voto en el proceso: " + eleccion.getNombre() + ". No puedes votar dos veces.");
-        return "votante/elecciones";
+        redirectAttributes.addFlashAttribute("errorVoto", "Ya emitiste tu voto en el proceso: " + eleccion.getNombre() + ". No puedes votar dos veces.");
+        return "redirect:/voto/elecciones";
     }
         List<Candidato> candidatos = candidatoRepository.findAll()
                 .stream()
