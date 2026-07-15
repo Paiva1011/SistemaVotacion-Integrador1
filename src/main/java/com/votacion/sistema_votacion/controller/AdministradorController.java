@@ -7,6 +7,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import jakarta.servlet.http.HttpSession;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -19,41 +20,42 @@ public class AdministradorController {
     @Autowired
     private AdministradorRepository administradorRepository;
 
+    // Mostrar login admin
     @GetMapping("/login")
     public String mostrarLogin() {
-        log.info("Mostrando página de login del administrador");
         return "admin/login";
     }
 
+    // Procesar login admin
     @PostMapping("/login")
     public String procesarLogin(@RequestParam String usuario,
             @RequestParam String password,
             HttpSession session, Model model) {
-        log.info("Intento de login de administrador con usuario: {}", usuario);
         Administrador admin = administradorRepository.findByUsuario(usuario).orElse(null);
+
         if (admin != null && admin.getPassword().equals(password)) {
             session.setAttribute("adminLogueado", admin);
-            log.info("Administrador '{}' autenticado correctamente", usuario);
+            log.info("Admin logueado correctamente: {}", usuario);
             return "redirect:/admin/dashboard";
         }
-        log.warn("Login fallido para administrador: {}", usuario);
+
+        log.warn("Intento de login admin fallido - Usuario: {}", usuario);
         model.addAttribute("error", "Usuario o contraseña incorrectos");
         return "admin/login";
     }
 
+    // Dashboard principal del admin
     @GetMapping("/dashboard")
     public String dashboard(HttpSession session, Model model) {
         if (session.getAttribute("adminLogueado") == null) {
-            log.warn("Intento de acceso al dashboard sin sesión activa");
             return "redirect:/admin/login";
         }
-        log.info("Administrador accedió al dashboard");
         return "admin/dashboard";
     }
 
+    // Cerrar sesión
     @GetMapping("/logout")
     public String logout(HttpSession session) {
-        log.info("Administrador cerró sesión");
         session.invalidate();
         return "redirect:/admin/login";
     }
