@@ -83,6 +83,27 @@
             text-align: center;
         }
 
+        .foto-can{
+            width:65px;
+            height:65px;
+            border-radius:10%;
+            object-fit:cover;
+            border:2px solid #1a3c6e;
+            flex-shrink:0;
+        }
+
+        .foto-candidato{
+            width:65px;
+            height:55px;
+            border-radius:10%;
+            background:#e8edf5;
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            font-size:1.4rem;
+            flex-shrink:0;
+        }
+
         .info {
             flex: 1;
         }
@@ -160,6 +181,12 @@
                     <span th:if="${i.index == 2}">3.</span>
                     <span th:if="${i.index > 2}" th:text="${i.index + 1}"></span>
                 </span>
+                <!-- Foto -->
+                <img th:if="${d.candidato != null and d.candidato.foto != null}" class="foto-can"
+                    th:src="@{'/candidatos/fotos/' + ${d.candidato.foto}}"/>
+                <div th:unless="${d.candidato != null and d.candidato.foto != null}" class="foto-candidato">
+                <span th:text="${d.candidato != null ? '👤' : '⬜'}"></span>
+                </div>
                 <!-- Info candidato -->
                 <div class="info">
                     <p class="nombre"

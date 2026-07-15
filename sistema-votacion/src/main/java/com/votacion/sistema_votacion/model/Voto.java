@@ -13,10 +13,6 @@ public class Voto {
     private Long idVoto;
 
     @ManyToOne
-    @JoinColumn(name = "id_votante", nullable = false)
-    private Votante votante;
-
-    @ManyToOne
     @JoinColumn(name = "id_candidato", nullable = true)
     private Candidato candidato;
 
@@ -31,8 +27,7 @@ public class Voto {
     public Voto() {
     }
 
-    public Voto(Votante votante, Candidato candidato, Eleccion eleccion, LocalDateTime fechaVoto) {
-        this.votante = votante;
+    public Voto(Candidato candidato, Eleccion eleccion, LocalDateTime fechaVoto) {
         this.candidato = candidato;
         this.eleccion = eleccion;
         this.fechaVoto = fechaVoto;
@@ -45,14 +40,6 @@ public class Voto {
 
     public void setIdVoto(Long idVoto) {
         this.idVoto = idVoto;
-    }
-
-    public Votante getVotante() {
-        return votante;
-    }
-
-    public void setVotante(Votante votante) {
-        this.votante = votante;
     }
 
     public Candidato getCandidato() {

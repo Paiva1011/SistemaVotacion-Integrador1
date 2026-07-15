@@ -3,6 +3,7 @@ package com.votacion.sistema_votacion.controller;
 import com.votacion.sistema_votacion.model.Votante;
 import com.votacion.sistema_votacion.model.Otp;
 import com.votacion.sistema_votacion.repository.VotanteRepository;
+import com.votacion.sistema_votacion.service.RecaptchaService;
 import com.votacion.sistema_votacion.repository.OtpRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -10,16 +11,24 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import jakarta.servlet.http.HttpSession;
 import java.time.LocalDateTime;
+import java.util.List;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @Controller
 @RequestMapping("/votante")
 public class VotanteController {
+    private static final Logger log = LoggerFactory.getLogger(VotanteController.class);
 
     @Autowired
     private VotanteRepository votanteRepository;
 
     @Autowired
     private OtpRepository otpRepository;
+
+    @Autowired
+    private RecaptchaService recaptchaService;
 
     // Mostrar login votante (ingresa DNI)
     @GetMapping("/login")
@@ -29,13 +38,27 @@ public class VotanteController {
 
     // Procesar DNI y generar OTP
     @PostMapping("/login")
-    public String procesarDni(@RequestParam String dni,
+    public String procesarDni(@RequestParam String dni, @RequestParam(name = "g-recaptcha-response", required = false) String recaptchaToken,
             HttpSession session, Model model) {
+
+        // Verificar reCAPTCHA
+        if (recaptchaToken == null || !recaptchaService.verificar(recaptchaToken)) {
+            model.addAttribute("error", "Por favor completa el captcha");
+            return "votante/login";
+        }
+
         Votante votante = votanteRepository.findByDni(dni).orElse(null);
 
         if (votante == null) {
             model.addAttribute("error", "DNI no encontrado");
             return "votante/login";
+        }
+
+        // Invalida todos los OTPs anteriores sin usar
+        List<Otp> otpsAnteriores = otpRepository.findAllByVotanteAndUsadoFalse(votante);
+        for (Otp otpAnterior : otpsAnteriores) {
+            otpAnterior.setUsado(true);
+            otpRepository.save(otpAnterior);
         }
 
         // Generar OTP de 6 dígitos
@@ -47,16 +70,22 @@ public class VotanteController {
 
         // En producción aquí se enviaría el OTP por SMS
         // Por ahora lo mostramos en consola
-        System.out.println("OTP para " + dni + ": " + codigo);
+        log.info("OTP generado para DNI {}: {}", dni, codigo);
+        log.warn("Intento de login con DNI no encontrado: {}", dni);
 
         session.setAttribute("dniVotante", dni);
+        session.setAttribute("celularVotante", votante.getCelular());
+
+        model.addAttribute("celular", votante.getCelular());
         model.addAttribute("mensaje", "Se envió el código OTP a tu celular");
         return "votante/verificar-otp";
     }
 
     // Mostrar página verificar OTP
     @GetMapping("/verificar-otp")
-    public String mostrarVerificarOtp() {
+    public String mostrarVerificarOtp(HttpSession session, Model model) {
+        String celular = (String) session.getAttribute("celularVotante");
+        model.addAttribute("celular", celular);
         return "votante/verificar-otp";
     }
 
@@ -77,11 +106,13 @@ public class VotanteController {
 
         if (otp == null || !otp.getCodigo().equals(codigo)) {
             model.addAttribute("error", "Código OTP incorrecto");
+            log.warn("OTP incorrecto para votante: {}", dni);
             return "votante/verificar-otp";
         }
 
         if (otp.getFechaExpiracion().isBefore(LocalDateTime.now())) {
             model.addAttribute("error", "El código OTP ha expirado");
+            log.warn("OTP expirado para votante: {}", dni);
             return "votante/verificar-otp";
         }
 
@@ -90,6 +121,7 @@ public class VotanteController {
         otpRepository.save(otp);
 
         session.setAttribute("votanteLogueado", votante);
+        log.info("Votante autenticado correctamente: {}", dni);
         return "redirect:/voto/elecciones";
     }
 

@@ -8,9 +8,14 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import jakarta.servlet.http.HttpSession;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 @Controller
 @RequestMapping("/admin")
 public class AdministradorController {
+
+    private static final Logger log = LoggerFactory.getLogger(AdministradorController.class);
 
     @Autowired
     private AdministradorRepository administradorRepository;
@@ -30,9 +35,11 @@ public class AdministradorController {
 
         if (admin != null && admin.getPassword().equals(password)) {
             session.setAttribute("adminLogueado", admin);
+            log.info("Admin logueado correctamente: {}", usuario);
             return "redirect:/admin/dashboard";
         }
 
+        log.warn("Intento de login admin fallido - Usuario: {}", usuario);
         model.addAttribute("error", "Usuario o contraseña incorrectos");
         return "admin/login";
     }

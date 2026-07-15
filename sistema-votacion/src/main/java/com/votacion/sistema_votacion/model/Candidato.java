@@ -20,6 +20,9 @@ public class Candidato {
     @Column(name = "propuestas_pdf")
     private String propuestasPdf;
 
+    @Column(name = "foto")
+    private String foto;
+
     @ManyToOne
     @JoinColumn(name = "id_partido", nullable = false)
     private PartidoPolitico partido;
@@ -72,6 +75,14 @@ public class Candidato {
 
     public void setPropuestasPdf(String propuestasPdf) {
         this.propuestasPdf = propuestasPdf;
+    }
+
+    public String getFoto() { 
+        return foto;
+    }
+
+    public void setFoto(String foto) { 
+        this.foto = foto; 
     }
 
     public PartidoPolitico getPartido() {

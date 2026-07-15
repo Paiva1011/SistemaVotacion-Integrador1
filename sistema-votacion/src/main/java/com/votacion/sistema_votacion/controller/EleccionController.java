@@ -1,21 +1,35 @@
 package com.votacion.sistema_votacion.controller;
 
-import com.votacion.sistema_votacion.model.Eleccion;
-import com.votacion.sistema_votacion.repository.EleccionRepository;
+import com.votacion.sistema_votacion.model.*;
+import com.votacion.sistema_votacion.repository.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import jakarta.servlet.http.HttpSession;
-
+import java.util.List;
 import java.time.LocalDateTime;
+import java.util.Map;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @Controller
 @RequestMapping("/elecciones")
 public class EleccionController {
 
+    private static final Logger log = LoggerFactory.getLogger(EleccionController.class);
+
     @Autowired
     private EleccionRepository eleccionRepository;
+    @Autowired 
+    private CandidatoRepository candidatoRepository;
+    @Autowired 
+    private VotoRepository votoRepository;
+    @Autowired 
+    private ComprobanteRepository comprobanteRepository;
+    @Autowired 
+    private ParticipacionRepository participacionRepository;
 
     // Listar elecciones (admin)
     @GetMapping
@@ -44,6 +58,7 @@ public class EleccionController {
                 LocalDateTime.parse(fechaFin),
                 estado);
         eleccionRepository.save(eleccion);
+        log.info("Elección creada: {}", nombre);
         return "redirect:/elecciones";
     }
 
@@ -59,6 +74,7 @@ public class EleccionController {
             e.setEstado(estado);
             eleccionRepository.save(e);
         });
+        log.info("Estado de elección {} cambiado a: {}", id, estado);
         return "redirect:/elecciones";
     }
 
@@ -68,9 +84,48 @@ public class EleccionController {
         if (session.getAttribute("adminLogueado") == null)
             return "redirect:/admin/login";
 
+        Eleccion eleccion = eleccionRepository.findById(id).orElse(null);
+        if (eleccion == null) return "redirect:/elecciones";
+
+    // 1. Eliminar comprobantes de los votos(de la eleccion)
+    List<Voto> votos = votoRepository.findAll().stream()
+        .filter(v -> v.getEleccion().getIdEleccion().equals(id))
+        .collect(java.util.stream.Collectors.toList());
+
+    for (Voto voto : votos) {
+        comprobanteRepository.findAll().stream()
+            .filter(c -> c.getVoto().getIdVoto().equals(voto.getIdVoto()))
+            .forEach(comprobanteRepository::delete);
+    }
+
+    // 2. Eliminar votos(de la eleccion)
+    votoRepository.deleteAll(votos);
+
+    // 3. Eliminar participaciones
+    List<Participacion> participaciones = participacionRepository.findAll().stream()
+        .filter(p -> p.getEleccion().getIdEleccion().equals(id))
+        .collect(java.util.stream.Collectors.toList());
+    participacionRepository.deleteAll(participaciones);
+
+    // 4. Eliminar candidatos(dela eleccion)
+    List<Candidato> candidatos = candidatoRepository.findAll().stream()
+        .filter(c -> c.getEleccion().getIdEleccion().equals(id))
+        .collect(java.util.stream.Collectors.toList());
+    candidatoRepository.deleteAll(candidatos);
+    //5. Eliminar la eleccion
         eleccionRepository.deleteById(id);
+        log.info("Elección eliminada - ID: {}", id);
         return "redirect:/elecciones";
     }
+
+    // Verificar contraseña del admin logueado
+    @GetMapping("/verificar-password")
+    @ResponseBody
+    public Map<String, Boolean> verificarPassword(@RequestParam String password,HttpSession session) {
+    Administrador admin = (Administrador) session.getAttribute("adminLogueado");
+    boolean valido = admin != null && admin.getPassword().equals(password);
+    return Map.of("valido", valido);
+}
 
     // Publicar resultados de una elección
     @GetMapping("/publicar/{id}")
@@ -82,6 +137,7 @@ public class EleccionController {
             e.setPublicada(true);
             eleccionRepository.save(e);
         });
+        log.info("Resultados publicados para elección ID: {}", id);
         return "redirect:/elecciones";
     }
 }
