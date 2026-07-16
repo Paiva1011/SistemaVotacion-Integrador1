@@ -174,11 +174,11 @@
                 <div class="form-grid">
                     <div>
                         <label>DNI</label>
-                        <input type="text" name="dni" required maxlength="8" placeholder="Ej: 12345678" />
+                        <input type="text" name="dni" required minlength="8" maxlength="8" pattern="[0-9]{8}" placeholder="Ej: 12345678" />
                     </div>
                     <div>
                         <label>Celular</label>
-                        <input type="text" name="celular" placeholder="Ej: 999888777" />
+                        <input type="text" name="celular" required minlength="9" maxlength="9" pattern="9[0-9]{8}" placeholder="Ej: 999888777" />
                     </div>
                     <div>
                         <label>Nombres</label>
