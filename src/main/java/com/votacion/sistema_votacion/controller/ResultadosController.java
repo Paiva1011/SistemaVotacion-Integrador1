@@ -7,8 +7,20 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import jakarta.servlet.http.HttpSession;
+import jakarta.servlet.http.HttpServletResponse;
 
+import java.io.IOException;
 import java.util.*;
+
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.apache.poi.ss.usermodel.BorderStyle;
+import org.apache.poi.ss.usermodel.CellStyle;
+import org.apache.poi.ss.usermodel.FillPatternType;
+import org.apache.poi.ss.usermodel.Font;
+import org.apache.poi.ss.usermodel.IndexedColors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -63,6 +75,127 @@ public class ResultadosController {
 
         log.info("Resultados públicos consultados - Elección ID: {}", idEleccion);
         return cargarResultados(idEleccion, model, "resultados-detalle");
+    }
+
+    // Exportar resultados a Excel (admin)
+    @GetMapping("/admin/{idEleccion}/excel")
+    public void exportarExcel(@PathVariable Long idEleccion,
+                          HttpSession session,
+                          HttpServletResponse response) throws IOException {
+
+        if (session.getAttribute("adminLogueado") == null) {
+            response.sendRedirect("/admin/login");
+            return;
+        }
+
+        Eleccion eleccion = eleccionRepository.findById(idEleccion)
+                .orElseThrow(() ->
+                        new IllegalArgumentException("Elección no encontrada"));
+
+        response.setContentType(
+                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+        response.setHeader(
+                "Content-Disposition",
+                "attachment; filename=resultados-eleccion-" + idEleccion + ".xlsx"
+        );
+
+        List<Candidato> candidatos = candidatoRepository.findAll().stream()
+                .filter(c -> c.getEleccion().getIdEleccion().equals(idEleccion))
+                .toList();
+
+        try (Workbook libro = new XSSFWorkbook()) {
+            Sheet hoja = libro.createSheet("Resultados");
+
+            // Anchos de columnas
+            hoja.setColumnWidth(0, 9000);
+            hoja.setColumnWidth(1, 6000);
+            hoja.setColumnWidth(2, 3000);
+
+            // Estilo con bordes
+            CellStyle estiloBorde = libro.createCellStyle();
+            estiloBorde.setBorderTop(BorderStyle.THIN);
+            estiloBorde.setBorderBottom(BorderStyle.THIN);
+            estiloBorde.setBorderLeft(BorderStyle.THIN);
+            estiloBorde.setBorderRight(BorderStyle.THIN);
+
+            // Estilo de encabezado
+            Font fuenteBlanca = libro.createFont();
+            fuenteBlanca.setBold(true);
+            fuenteBlanca.setColor(IndexedColors.WHITE.getIndex());
+
+            CellStyle estiloEncabezado = libro.createCellStyle();
+            estiloEncabezado.cloneStyleFrom(estiloBorde);
+            estiloEncabezado.setFillForegroundColor(IndexedColors.DARK_BLUE.getIndex());
+            estiloEncabezado.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+            estiloEncabezado.setFont(fuenteBlanca);
+
+            // Título
+            Row titulo = hoja.createRow(0);
+            titulo.createCell(0).setCellValue("Resultados: " + eleccion.getNombre());
+
+            // Encabezados
+            Row encabezado = hoja.createRow(2);
+            encabezado.createCell(0).setCellValue("Candidato");
+            encabezado.createCell(1).setCellValue("Partido");
+            encabezado.createCell(2).setCellValue("Votos");
+
+            for (int columna = 0; columna < 3; columna++) {
+                encabezado.getCell(columna).setCellStyle(estiloEncabezado);
+            }
+
+            int fila = 3;
+            long totalVotos = 0;
+
+            // Resultados por candidato
+            for (Candidato candidato : candidatos) {
+                long cantidadVotos = votoRepository
+                        .countByCandidatoAndEleccion(candidato, eleccion);
+
+                Row datos = hoja.createRow(fila++);
+                datos.createCell(0).setCellValue(
+                        candidato.getNombres() + " " + candidato.getApellidos()
+                );
+                datos.createCell(1).setCellValue(candidato.getPartido().getNombre());
+                datos.createCell(2).setCellValue(cantidadVotos);
+
+                for (int columna = 0; columna < 3; columna++) {
+                    datos.getCell(columna).setCellStyle(estiloBorde);
+                }
+
+                totalVotos += cantidadVotos;
+            }
+
+            // Votos en blanco
+            long votosBlanco = votoRepository.findAll().stream()
+                    .filter(v -> v.getEleccion().getIdEleccion().equals(idEleccion))
+                    .filter(v -> v.getCandidato() == null)
+                    .count();
+
+            if (votosBlanco > 0) {
+                Row blanco = hoja.createRow(fila++);
+                blanco.createCell(0).setCellValue("Voto en blanco");
+                blanco.createCell(1).setCellValue("-");
+                blanco.createCell(2).setCellValue(votosBlanco);
+
+                for (int columna = 0; columna < 3; columna++) {
+                    blanco.getCell(columna).setCellStyle(estiloBorde);
+                }
+
+                totalVotos += votosBlanco;
+            }
+
+            // Total
+            Row total = hoja.createRow(fila + 1);
+            total.createCell(0).setCellValue("TOTAL DE VOTOS");
+            total.createCell(1).setCellValue("");
+            total.createCell(2).setCellValue(totalVotos);
+
+            for (int columna = 0; columna < 3; columna++) {
+                total.getCell(columna).setCellStyle(estiloBorde);
+            }
+
+            libro.write(response.getOutputStream());
+        }
     }
 
     // Metodo para cargar datos de los resultados

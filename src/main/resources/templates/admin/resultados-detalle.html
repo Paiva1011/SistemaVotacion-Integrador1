@@ -163,6 +163,7 @@
     <header>
         <h1>📊 Resultados</h1>
         <div class="nav">
+            <a th:href="@{/resultados/admin/{id}/excel(id=${eleccion.idEleccion})}">⬇️ Exportar Excel</a>
             <a th:href="@{/resultados/admin}">← Volver</a>
             <a th:href="@{/admin/logout}">Cerrar sesión</a>
         </div>
