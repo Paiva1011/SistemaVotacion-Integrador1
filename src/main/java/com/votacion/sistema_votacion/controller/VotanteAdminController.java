@@ -11,9 +11,12 @@ import jakarta.servlet.http.HttpSession;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import org.apache.commons.lang3.StringUtils;
+
 @Controller
 @RequestMapping("/votantes")
 public class VotanteAdminController {
+
     private static final Logger log = LoggerFactory.getLogger(VotanteAdminController.class);
 
     @Autowired
@@ -30,10 +33,12 @@ public class VotanteAdminController {
 
     @PostMapping("/guardar")
     public String guardar(@RequestParam String dni,
-            @RequestParam String nombres,
-            @RequestParam String apellidos,
-            @RequestParam String celular,
-            HttpSession session, Model model) {
+                          @RequestParam String nombres,
+                          @RequestParam String apellidos,
+                          @RequestParam String celular,
+                          HttpSession session,
+                          Model model) {
+
         if (session.getAttribute("adminLogueado") == null)
             return "redirect:/admin/login";
 
@@ -45,17 +50,38 @@ public class VotanteAdminController {
             return "admin/votantes";
         }
 
-        votanteRepository.save(new Votante(dni, nombres, apellidos, celular));
+        String nombresFormateados = capitalizarPalabras(nombres);
+        String apellidosFormateados = capitalizarPalabras(apellidos);
+
+        votanteRepository.save(
+                new Votante(dni, nombresFormateados, apellidosFormateados, celular));
+
         log.info("Votante registrado - DNI: {}", dni);
+
         return "redirect:/votantes";
+    }
+
+    private String capitalizarPalabras(String texto) {
+        String[] palabras = texto.trim().toLowerCase().split("\\s+");
+        StringBuilder resultado = new StringBuilder();
+
+        for (String palabra : palabras) {
+            if (!palabra.isEmpty()) {
+                resultado.append(StringUtils.capitalize(palabra)).append(" ");
+            }
+        }
+
+        return resultado.toString().trim();
     }
 
     @GetMapping("/eliminar/{id}")
     public String eliminar(@PathVariable Long id, HttpSession session) {
+
         if (session.getAttribute("adminLogueado") == null)
             return "redirect:/admin/login";
 
         votanteRepository.deleteById(id);
+
         return "redirect:/votantes";
     }
 }

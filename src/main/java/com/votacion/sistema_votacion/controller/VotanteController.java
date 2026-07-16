@@ -16,6 +16,10 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import org.apache.commons.lang3.StringUtils;
+
+
+
 @Controller
 @RequestMapping("/votante")
 public class VotanteController {
@@ -104,6 +108,11 @@ public class VotanteController {
             return "redirect:/votante/login";
 
         Otp otp = otpRepository.findByVotanteAndUsadoFalse(votante).orElse(null);
+
+        if (!StringUtils.isNumeric(codigo)) {
+            model.addAttribute("error", "El código OTP solo debe contener números");
+            return "votante/verificar-otp";
+        }
 
         if (otp == null || !otp.getCodigo().equals(codigo)) {
             model.addAttribute("error", "Código OTP incorrecto");
